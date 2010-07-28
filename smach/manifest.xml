@@ -1,0 +1,20 @@
+<package>
+  <description brief="smach">
+
+     smach
+
+  </description>
+  <author>Jonathan Bohren</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/smach</url>
+
+  <platform os="ubuntu" version="9.04"/>
+  <platform os="ubuntu" version="9.10"/>
+  <platform os="ubuntu" version="10.04"/>
+  <export>
+    <rosdoc config="rosdoc.yaml"/>    
+  </export>
+</package>
+
+

@@ -1,0 +1,17 @@
+<package>
+  <description brief="smach_viewer">
+
+     smach_viewer
+
+  </description>
+  <author>Jon Bohren</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/smach_viewer</url>
+
+  <depend package="smach"/>
+  <depend package="xdot"/>
+  <depend package="executive_python_msgs"/>
+</package>
+
+
