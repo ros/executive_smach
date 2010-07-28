@@ -11,7 +11,7 @@ from actionlib.msg import *
 
 from smach import *
 
-from executive_python_msgs.msg import *
+from smach_msgs.msg import *
 from geometry_msgs.msg import PoseStamped
 
 
