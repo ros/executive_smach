@@ -12,7 +12,7 @@ from actionlib.msg import *
 from smach import *
 from smach_ros import *
 
-from executive_python_msgs.msg import *
+from smach_msgs.msg import *
 
 # Static goals
 g1 = TestGoal(1) # This goal should succeed

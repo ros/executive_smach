@@ -20,7 +20,7 @@
   <depend package="trajectory_msgs"/>
   <depend package="pr2_controllers_msgs"/>
 
-  <depend package="executive_python_msgs"/>
+  <depend package="smach_msgs"/>
 
 
 </package>

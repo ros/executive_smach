@@ -9,7 +9,7 @@ import threading
 import rostopic
 import smach
 
-from executive_python_msgs.msg import SmachContainerStatus,SmachContainerInitialStatusCmd,SmachContainerStructure
+from smach_msgs.msg import SmachContainerStatus,SmachContainerInitialStatusCmd,SmachContainerStructure
 
 
 __all__ = ['IntrospectionClient','IntrospectionServer']
@@ -24,7 +24,7 @@ class IntrospectionClient():
         """Get the base names that are broadcasting smach states."""
 
         # Get the currently broadcasting smach introspection topics
-        topics = rostopic.find_by_type('executive_python_msgs/SmachContainerStatus')
+        topics = rostopic.find_by_type('smach_msgs/SmachContainerStatus')
 
         return [t[:t.rfind(STATUS_TOPIC)] for t in topics]
 

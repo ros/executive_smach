@@ -7,7 +7,7 @@ import threading
 import traceback
 
 from actionlib.simple_action_server import SimpleActionServer
-from executive_python_msgs.msg import *
+from smach_msgs.msg import *
 import smach
 
 __all__ = ['ActionServerWrapper']
