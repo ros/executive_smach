@@ -32,7 +32,7 @@
 import roslib; roslib.load_manifest('smach_viewer')
 import rospy
 
-from executive_python_msgs.msg import SmachContainerStatus,SmachContainerInitialStatusCmd,SmachContainerStructure
+from smach_msgs.msg import SmachContainerStatus,SmachContainerInitialStatusCmd,SmachContainerStructure
 
 import sys
 import os

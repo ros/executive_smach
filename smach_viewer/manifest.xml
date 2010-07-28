@@ -11,7 +11,7 @@
 
   <depend package="smach"/>
   <depend package="xdot"/>
-  <depend package="executive_python_msgs"/>
+  <depend package="smach_msgs"/>
 </package>
 
 
