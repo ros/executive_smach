@@ -17,8 +17,6 @@
 
   <depend package="actionlib"/>
   <depend package="actionlib_msgs"/>
-  <depend package="trajectory_msgs"/>
-  <depend package="pr2_controllers_msgs"/>
 
   <depend package="smach_msgs"/>
 
