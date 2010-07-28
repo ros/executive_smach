@@ -50,6 +50,7 @@ import wx.richtext
 
 import xdot
 import smach
+import smach_ros
 
 def graph_attr_string(attrs):
     attrs_strs = ['"'+str(k)+'"="'+str(v)+'"' for k,v in attrs.iteritems()]
@@ -505,7 +506,7 @@ class SmachViewerFrame(wx.Frame):
         self.Center()
 
         # smach introspection client
-        self._client = smach.IntrospectionClient()
+        self._client = smach_ros.IntrospectionClient()
         self._containers= {}
         self._selected_paths = []
 
@@ -798,14 +799,14 @@ class SmachViewerFrame(wx.Frame):
             # Create subscribers for new servers
             for server_name in new_server_names:
                 self._structure_subs[server_name] = rospy.Subscriber(
-                        server_name+smach.introspection.STRUCTURE_TOPIC,
+                        server_name+smach_ros.introspection.STRUCTURE_TOPIC,
                         SmachContainerStructure,
                         callback = self._structure_msg_update,
                         callback_args = server_name,
                         queue_size=50)
 
                 self._status_subs[server_name] = rospy.Subscriber(
-                        server_name+smach.introspection.STATUS_TOPIC,
+                        server_name+smach_ros.introspection.STATUS_TOPIC,
                         SmachContainerStatus,
                         callback = self._status_msg_update,
                         queue_size=50)

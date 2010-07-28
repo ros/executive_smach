@@ -9,8 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/smach_viewer</url>
 
-  <depend package="smach"/>
-  <depend package="rospy"/>
+  <depend package="smach_ros"/>
   <depend package="xdot"/>
   <depend package="smach_msgs"/>
 </package>
