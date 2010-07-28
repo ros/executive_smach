@@ -37,8 +37,7 @@ __all__ = ['set_preempt_handler',
         'SimpleActionState',
         'ServiceState',
         'MonitorState',
-        'ConditionState',
-        'JointTrajectoryState']
+        'ConditionState']
 
 # Setup smach-ros interface
 smach.set_loggers(
@@ -74,4 +73,3 @@ from simple_action_state import SimpleActionState
 from service_state import ServiceState
 from monitor_state import MonitorState
 from condition_state import ConditionState
-from joint_trajectory_state import JointTrajectoryState
