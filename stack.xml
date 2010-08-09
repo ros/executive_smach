@@ -1,5 +1,8 @@
 <stack>
-  <description brief="executive_smach">executive_smach</description>
+  <description brief="executive_smach">
+    The executive_smach stack contains the SMACH library, together
+    with tools for introspection and a ROS integration package.
+  </description>
   <author>Jonathan Bohren</author>
   <license>BSD</license>  
   <review status="unreviewed" notes=""/>
@@ -7,4 +10,5 @@
   <depend stack="common" /> <!-- actionlib -->
   <depend stack="common_msgs" /> <!-- actionlib_msgs -->
   <depend stack="ros" /> <!-- xdot, rostest, rospy, rostopic -->
+
 </stack>
