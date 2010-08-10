@@ -10,7 +10,7 @@
   </description>
   <author>Jon Bohren</author>
   <license>BSD</license>
-  <review status="unreviewed" notes=""/>
+  <review status="DOC reviewed" notes=""/>
   <url>http://ros.org/wiki/smach_viewer</url>
 
   <depend package="smach_ros"/>
