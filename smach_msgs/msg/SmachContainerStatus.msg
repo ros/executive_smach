@@ -12,5 +12,5 @@ string[] active_states
 # A pickled user data structure
 string local_data
 
-# Some arbitrary info
+# Debugging info string
 string info
