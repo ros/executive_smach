@@ -84,7 +84,7 @@ class UserData(object):
 def get_const(obj):
     """Get a const reference to an object if it has "user-defined" attributes."""
     if hasattr(obj,'__dict__'):
-        smach.logdebug("Making const '%s'" % str(name))
+        smach.logdebug("Making const '%s'" % str(obj))
         return Const(obj)
     else:
         return obj
