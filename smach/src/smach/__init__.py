@@ -27,7 +27,7 @@
 # Define default logging macros
 
 ### Utilities
-from smach.logging import\
+from smach.log import\
         set_loggers,\
         loginfo,\
         logwarn,\
