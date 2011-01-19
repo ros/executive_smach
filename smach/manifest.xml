@@ -9,7 +9,7 @@
   </description>
   <author>Jonathan Bohren</author>
   <license>BSD</license>
-  <review status="API cleared" notes=""/>
+  <review status="Doc reviewed" notes=""/>
   <url>http://ros.org/wiki/smach</url>
 
   <platform os="ubuntu" version="9.04"/>
