@@ -1,5 +1,5 @@
 
-import roslib; roslib.load_manifest('smach')
+import roslib; roslib.load_manifest('smach_ros')
 import rospy
 
 import copy
