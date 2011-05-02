@@ -1,10 +1,7 @@
 
-import roslib; roslib.load_manifest('smach')
 import smach
-
 import threading
 
-import smach
 
 __all__ = ['is_shutdown','set_shutdown_cb',\
         'cb_interface','has_smach_interface','CBInterface']
