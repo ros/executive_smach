@@ -1,7 +1,7 @@
 
-import roslib; roslib.load_manifest('smach')
+import roslib; roslib.load_manifest('smach_ros')
 import rospy
-from roslib.msg import Header
+from std_msgs.msg import Header
 
 import pickle
 import threading
