@@ -154,7 +154,7 @@ class ActionServerWrapper():
         """
         rospy.logdebug("Publishing action feedback.")
         # Publish action feedback
-        self.publish_feedback()
+        self.publish_feedback(userdata)
 
     def termination_cb(self, userdata, terminal_states, container_outcome):
         """Termination callback passed to state machine.
@@ -169,11 +169,11 @@ class ActionServerWrapper():
         """
         rospy.logdebug("Wrapped state machine has terminated with final state: "+str(terminal_states)+" and container outcome: "+str(container_outcome))
 
-    def publish_feedback(self):
+    def publish_feedback(self, userdata):
         """Publish the feedback message in the userdata db.
         Note that this feedback is independent of smach.
         """
-        self._action_server.publish_feedback(self.userdata[self._feedback_key])
+        self._action_server.publish_feedback(userdata[self._feedback_key])
 
     ### Action server callbacks
     def execute_cb(self, goal):
