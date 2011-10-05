@@ -48,19 +48,6 @@ smach.set_loggers(
 
 smach.set_shutdown_check(rospy.is_shutdown)
 
-# Patch roslib.message to be pickle-able
-#import roslib.message
-def _message__getstate__(self):
-    return [getattr(self, x) for x in self.__slots__]
-
-def _message__setstate__(self, state):
-    import itertools
-    for x, val in itertools.izip(self.__slots__, state):
-        setattr(self, x, val)
-
-roslib.message.Message.__getstate__ = _message__getstate__
-roslib.message.Message.__setstate__ = _message__setstate__
-
 ### Core classes
 from util import set_preempt_handler
 
