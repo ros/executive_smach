@@ -224,6 +224,7 @@ class StateMachine(smach.container.Container):
                 else:
                     # The flag was reset, so the container can reset
                     self._preempt_requested = False
+                    self._preempted_state = None
             else:
                 # We were preempted after the last state was running
                 # So we should preempt this state before we execute it
