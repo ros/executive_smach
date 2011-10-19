@@ -3,14 +3,12 @@ bison:
   debian: bison
   macports: bison
   osxbrew:
-    lion:
-      homebrew:
-        packages: |
+    homebrew:
+      packages: |
 flex:
   ubuntu: flex
   debian: flex
   macports: flex
   osxbrew:
-    lion:
-      homebrew:
-        packages: |
+    homebrew:
+       packages: |
