@@ -173,7 +173,15 @@ class ActionServerWrapper():
         """Publish the feedback message in the userdata db.
         Note that this feedback is independent of smach.
         """
-        self._action_server.publish_feedback(userdata[self._feedback_key])
+        if self._feedback_key in userdata:
+            # This was spewing errors after the fix to ticket #5033 was submitted
+            # in the case when _feedback_key is not set
+            # For now, the fix is just checking if it exists, and not publishing otherwise
+            # The spewage used to not happen because we were looking in self.userdata
+            # and the constructor of this class sets the feedback key there to an empty struct
+            # TODO figure out what the hell is going on here.
+            self._action_server.publish_feedback(userdata[self._feedback_key])
+        
 
     ### Action server callbacks
     def execute_cb(self, goal):
