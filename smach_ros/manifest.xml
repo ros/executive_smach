@@ -25,6 +25,7 @@
 
   <depend package="smach_msgs"/>
   <depend package="std_msgs"/>
+  <depend package="std_srvs"/>
 
   <export>
     <rosdoc config="rosdoc.yaml"/>    

@@ -35,7 +35,11 @@ class ServiceState(smach.State):
             outcomes = [],
             ):
 
-        smach.State.__init__(self, outcomes=['succeeded','aborted','preempted'])
+        smach.State.__init__(self,
+                outcomes=['succeeded','aborted','preempted'],
+                input_keys=input_keys,
+                output_keys=output_keys
+                )
 
         # Store Service info
         self._service_name = service_name
