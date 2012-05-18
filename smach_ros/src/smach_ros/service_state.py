@@ -35,11 +35,7 @@ class ServiceState(smach.State):
             outcomes = [],
             ):
 
-        smach.State.__init__(self,
-                outcomes=['succeeded','aborted','preempted'],
-                input_keys=input_keys,
-                output_keys=output_keys
-                )
+        smach.State.__init__(self,outcomes=['succeeded','aborted','preempted'])
 
         # Store Service info
         self._service_name = service_name
@@ -60,8 +56,7 @@ class ServiceState(smach.State):
         self._request_cb = request_cb
         self._request_cb_args = request_cb_args
         self._request_cb_kwargs = request_cb_kwargs
-        if hasattr(request_cb,'get_registered_input_keys')\
-                and hasattr(request_cb,'get_registered_output_keys'):
+        if smach.has_smach_interface(request_cb):
             self._request_cb_input_keys = request_cb.get_registered_input_keys()
             self._request_cb_output_keys = request_cb.get_registered_output_keys()
 
@@ -85,9 +80,7 @@ class ServiceState(smach.State):
         self._response_cb = response_cb
         self._response_cb_args = response_cb_args
         self._response_cb_kwargs = response_cb_kwargs
-        if hasattr(response_cb,'get_registered_input_keys')\
-                and hasattr(response_cb,'get_registered_output_keys')\
-                and hasattr(response_cb,'get_registered_outcomes'):
+        if smach.has_smach_interface(response_cb):
             self._response_cb_input_keys = response_cb.get_registered_input_keys()
             self._response_cb_output_keys = response_cb.get_registered_output_keys()
             self._response_cb_outcomes = response_cb.get_registered_outcomes()
@@ -99,6 +92,11 @@ class ServiceState(smach.State):
             self._response_cb_input_keys = input_keys
             self._response_cb_output_keys = output_keys
             self._response_cb_outcomes = outcomes
+
+        # Register additional input and output keys
+        self.register_input_keys(input_keys)
+        self.register_output_keys(output_keys)
+        self.register_outcomes(outcomes)
 
         self._response_key = response_key
         if response_key is not None:
