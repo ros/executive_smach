@@ -136,7 +136,7 @@ class Remapper(UserData):
         return key
 
     def update(self, other_userdata):
-        self._ud.updatea(other_userdata)
+        self._ud.update(other_userdata)
 
     def __getitem__(self, key):
         if key not in self._input:
