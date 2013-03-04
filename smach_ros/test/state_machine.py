@@ -19,7 +19,7 @@ g1 = TestGoal(1) # This goal should succeed
 g2 = TestGoal(2) # This goal should abort
 g3 = TestGoal(3) # This goal should be rejected
 
-### Custom tate classe
+### Custom state classe
 class Setter(State):
     """State that sets the key 'a' in its userdata"""
     def __init__(self):
@@ -128,17 +128,6 @@ class TestStateMachine(unittest.TestCase):
 
         assert outcome == 'done'
 
-    def test_yaml(self):
-        return
-        """
-        StateMachine:
-            FIRST
-            SECOND
-            THIRD
-
-            FIRST: succeeded -> SECOND
-        """
-
     def test_group(self):
         """Test adding a bunch of states with group args."""
 
@@ -171,50 +160,6 @@ class TestStateMachine(unittest.TestCase):
         outcome = sm.execute()
 
         assert outcome == 'succeeded'
-
-    def test_introspection(self):
-        return
-        """Test introspection system."""
-        # Construct state machine
-        sm = StateMachine(['done'])
-        sm2 = StateMachine(['done'])
-        sm3 = StateMachine(['done'])
-        sm.add(
-                state_machine.sequence('done',
-                    ('GETTER1', Getter(), {}),
-                    ('S2',
-                        sm2.add( ('SETTER', Setter(), {}) ),
-                        {} ),
-                    ('S3',
-                        sm3.add( ('SETTER', Setter(), {}) ),
-                        {} ),
-                    ('GETTER2', Getter(), {})
-                    )
-                )
-
-        sm.set_initial_state(['GETTER1'])
-        sm2.set_initial_state(['SETTER'])
-        sm3.set_initial_state(['SETTER'])
-
-        # Run introspector
-        intro_server = smach_ros.IntrospectionServer('intro_test',sm,'/intro_test')
-
-        intro_client = smach_ros.IntrospectionClient()
-        servers = intro_client.get_servers()
-
-        rospy.loginfo("Smach servers: "+str(servers))
-        assert '/intro_test' in servers
-
-        # Set initial state
-        injected_ud = smach.UserData()
-        injected_ud.a = 'A'
-        init_set = intro_client.set_initial_state('intro_test','/intro_test',['S2'],injected_ud,timeout = rospy.Duration(10.0))
-        assert init_set
-
-        sm.execute()
-
-        assert sm.get_outcome() == 'done'
-
 
 def main():
     rospy.init_node('state_machine_test',log_level=rospy.DEBUG)
