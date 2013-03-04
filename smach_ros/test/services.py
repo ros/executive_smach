@@ -6,20 +6,12 @@ import rostest
 
 import unittest
 
-from actionlib import *
-from actionlib.msg import *
-
 import std_srvs.srv as std_srvs
 
 from smach import *
 from smach_ros import *
 
 from smach_msgs.msg import *
-
-# Static goals
-g1 = TestGoal(1) # This goal should succeed
-g2 = TestGoal(2) # This goal should abort
-g3 = TestGoal(3) # This goal should be rejected
 
 def empty_server(req):
     rospy.loginfo("Service called!")
