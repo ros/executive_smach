@@ -1,4 +1,4 @@
 <launch>
-  <node pkg="actionlib" type="ref_server.py" name="ref_server" output="screen"/>
+  <node pkg="smach_ros" type="ref_server.py" name="ref_server" output="screen"/>
   <test test-name="smach_actionlib" pkg="smach_ros" time-limit="60.0" type="smach_actionlib.py" />
 </launch>
