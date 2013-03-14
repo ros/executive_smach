@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package>
+  <name>executive_smach</name>
+  <version>1.3.0</version>
+  <description>
+    This metapackage depends on the SMACH library and ROS SMACH integration
+    packages.
+  </description>
+  <maintainer email="jbo@jhu.edu">Jonathan Bohren</maintainer>
+  <license>BSD</license>
+
+  <url>http://ros.org/wiki/smach</url>
+  <author>Jonathan Bohren</author>
+  <author>Wim Meeussen</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>smach</run_depend>
+  <run_depend>emach_ros</run_depend>
+  <run_depend>smach_msgs</run_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+</package>
