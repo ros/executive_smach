@@ -3,7 +3,7 @@
     The executive_smach stack contains the SMACH library, together
     with tools for introspection and a ROS integration package.
   </description>
-  <author>Jon Bohren, Wim Meeussen</author>
+  <author>Jonathan Bohren, Wim Meeussen</author>
   <license>BSD</license>  
   <review status="doc reviewed" notes=""/>
   <url>http://ros.org/wiki/executive_smach</url>
