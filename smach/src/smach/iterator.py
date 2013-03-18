@@ -153,7 +153,7 @@ class Iterator(smach.container.Container):
 
         while not smach.is_shutdown():
             try:
-                item = it.next()
+                item = next(it)
             except:
                 outcome = self._exhausted_outcome
                 break

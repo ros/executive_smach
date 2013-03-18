@@ -135,7 +135,7 @@ class ServiceState(smach.State):
             if self._request_key in ud:
                 self._request = ud[self._request_key]
             else:
-                rospy.logerr("Requested request key '%s' not in userdata struture. Available keys are: %s" % (self._request_key, str(ud.keys())))
+                rospy.logerr("Requested request key '%s' not in userdata struture. Available keys are: %s" % (self._request_key, str(list(ud.keys()))))
                 return 'aborted'
 
         # Write request fields from userdata if set
@@ -143,7 +143,7 @@ class ServiceState(smach.State):
             if key in ud:
                 setattr(self._request,key,ud[key])
             else:
-                rospy.logerr("Requested request slot key '%s' is not in userdata strcture. Available keys are: %s" % (key, str(ud.keys())))
+                rospy.logerr("Requested request slot key '%s' is not in userdata strcture. Available keys are: %s" % (key, str(list(ud.keys()))))
                 return 'aborted'
 
         # Call user-supplied callback, if set, to get a request

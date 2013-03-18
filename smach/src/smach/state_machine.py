@@ -125,7 +125,7 @@ class StateMachine(smach.container.Container):
         registered_outcomes = state.get_registered_outcomes()
 
         # Get a list of the unbound transitions
-        missing_transitions = dict([(o,None) for o in registered_outcomes if o not in transitions.keys()])
+        missing_transitions = dict([(o,None) for o in registered_outcomes if o not in transitions])
         transitions.update(missing_transitions)
         smach.logdebug("State '%s' is missing transitions: %s" % (label,str(missing_transitions)))
 
@@ -206,9 +206,9 @@ class StateMachine(smach.container.Container):
         last_state_label = self._current_label
 
         # Make sure the state exists
-        if self._current_label not in self._states.keys():
+        if self._current_label not in self._states:
             raise smach.InvalidStateError("State '%s' does not exist. Available states are: %s" %
-                    (str(self._current_label),str(self._states.keys())))
+                    (str(self._current_label),str(list(self._states.keys()))))
 
         # Check if a preempt was requested before or while the last state was running
         if self.preempt_requested():
@@ -332,7 +332,7 @@ class StateMachine(smach.container.Container):
 
             # Spew some info
             smach.loginfo("State machine starting in initial state '%s' with userdata: \n\t%s" %
-                    (self._current_label,str(self.userdata.keys())))
+                    (self._current_label,str(list(self.userdata.keys()))))
 
 
             # Call start callbacks
@@ -391,7 +391,7 @@ class StateMachine(smach.container.Container):
 
     def __getitem__(self,key):
         if key not in self._states:
-            smach.logerr("Attempting to get state '%s' from StateMachine container. The only available states are: %s" % (key, self._states.keys()))
+            smach.logerr("Attempting to get state '%s' from StateMachine container. The only available states are: %s" % (key, str(list(self._states.keys()))))
             raise KeyError()
         return self._states[key]
 
@@ -415,8 +415,8 @@ class StateMachine(smach.container.Container):
 
     def get_internal_edges(self):
         int_edges = []
-        for (from_label,transitions) in self._transitions.iteritems():
-            for (outcome,to_label) in transitions.iteritems():
+        for (from_label,transitions) in ((k,self._transitions[k]) for k in self._transitions):
+            for (outcome,to_label) in ((k,transitions[k]) for k in transitions):
                 int_edges.append([outcome,from_label,to_label])
         return int_edges
 
@@ -431,7 +431,7 @@ class StateMachine(smach.container.Container):
         """
         # Make sure all transitions are from registered outcomes of this state
         registered_outcomes = state.get_registered_outcomes()
-        for outcome in transitions.keys():
+        for outcome in transitions:
             if outcome not in registered_outcomes:
                 raise smach.InvalidTransitionError("Specified outcome '"+outcome+"' on state '"+label+"', which only has available registered outcomes: "+str(registered_outcomes))
 
@@ -442,7 +442,7 @@ class StateMachine(smach.container.Container):
         with relevant information.
         """
         # Construct a set of available states
-        available_states = set(self._states.keys()+list(self.get_registered_outcomes()))
+        available_states = set(list(self._states.keys())+list(self.get_registered_outcomes()))
 
         # Grab the registered outcomes for the state machine
         registered_sm_outcomes = self.get_registered_outcomes()
@@ -453,13 +453,13 @@ class StateMachine(smach.container.Container):
         # Check initial_state_label
         if self._initial_state_label is None:
             errors = errors + "\n\tNo initial state set."
-        elif self._initial_state_label not in self._states.keys():
+        elif self._initial_state_label not in self._states:
             errors = errors + "\n\tInitial state label: '"+str(self._initial_state_label)+"' is not in the state machine."
 
         # Generate state specifications
         state_specs = [
             (label, self._states[label], self._transitions[label])
-            for label in self._states.keys()]
+            for label in self._states]
         # Iterate over all states
         for label,state,transitions in state_specs:
             # Check that all potential outcomes are registered in this state
@@ -475,7 +475,7 @@ class StateMachine(smach.container.Container):
                     +"' references unknown states: "+str(list(missing_states)))
 
             # Check terminal outcomes for this state
-            terminal_outcomes = set([o for o,s in transitions.iteritems() if ((s is None) or (s == ''))])
+            terminal_outcomes = set([o for o,s in ((k,transitions[k]) for k in transitions) if ((s is None) or (s == ''))])
             # Terminal outcomes should be in the    registered outcomes of this state machine
             missing_outcomes = terminal_outcomes.difference(registered_sm_outcomes)
             # Check number of missing outcomes

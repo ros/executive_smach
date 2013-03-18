@@ -150,7 +150,7 @@ class Concurrence(smach.container.Container):
             errors += "\n\tDefault outcome '%s' is unregistered." % str(default_outcome)
 
         # Check if outcome maps only contain outcomes that are registered
-        for o in outcome_map.keys():
+        for o in outcome_map:
             if o not in outcomes:
                 errors += "\n\tUnregistered outcome '%s' in and_outcome_map." % str(o)
 
@@ -205,13 +205,13 @@ class Concurrence(smach.container.Container):
 
         # Spew some info
         smach.loginfo("Concurrence starting with userdata: \n\t%s" %
-                (str(self.userdata.keys())))
+                (str(list(self.userdata.keys()))))
 
         # Call start callbacks
         self.call_start_cbs()
 
         # Create all the threads
-        for (label, state) in self._states.iteritems():
+        for (label, state) in ((k,self._states[k]) for k in self._states):
             # Initialize child outcomes
             self._child_outcomes[label] = None
             self._threads[label] = threading.Thread(
@@ -253,7 +253,7 @@ class Concurrence(smach.container.Container):
             children_preempts_serviced = True
 
             # Service this preempt if 
-            for (label,state) in self._states.iteritems():
+            for (label,state) in ((k,self._states[k]) for k in self._states):
                 if state.preempt_requested():
                     # Reset the flag
                     children_preempts_serviced = False
@@ -273,8 +273,8 @@ class Concurrence(smach.container.Container):
 
         # Determine the outcome from the outcome map
         smach.logdebug("SMACH Concurrence determining contained state outcomes.")
-        for (container_outcome, outcomes) in self._outcome_map.iteritems():
-            if all([self._child_outcomes[label] == outcomes[label] for label in outcomes.keys()]):
+        for (container_outcome, outcomes) in ((k,self._outcome_map[k]) for k in self._outcome_map):
+            if all([self._child_outcomes[label] == outcomes[label] for label in outcomes]):
                 smach.logdebug("Terminating concurrent split with mapped outcome.")
                 outcome = container_outcome
 
@@ -297,7 +297,7 @@ class Concurrence(smach.container.Container):
         self._child_outcomes = {}
 
         # Call termination callbacks
-        self.call_termination_cbs(self._states.keys(), outcome)
+        self.call_termination_cbs(list(self._states.keys()), outcome)
 
         # Copy output keys
         self._copy_output_keys(self.userdata, parent_ud)
@@ -362,7 +362,7 @@ class Concurrence(smach.container.Container):
         return self._states[key]
 
     def get_initial_states(self):
-        return self._states.keys()
+        return list(self._states.keys())
 
     def set_initial_state(self, initial_states, userdata):
         if initial_states > 0:
@@ -373,18 +373,18 @@ class Concurrence(smach.container.Container):
         self.userdata.update(userdata)
 
     def get_active_states(self):
-        return [label for (label,outcome) in self._child_outcomes.iteritems() if outcome is None]
+        return [label for (label,outcome) in ((k,self._child_outcomes[k]) in self._child_outcomes) if outcome is None]
 
     def get_internal_edges(self):
         int_edges = []
-        for (container_outcome, outcomes) in self._outcome_map.iteritems():
-            for (s,o) in outcomes.iteritems():
-                int_edges.append([o,s,container_outcome])
+        for (container_outcome, outcomes) in ((k,self._outcome_map[k]) for k in self._outcome_map):
+            for state_key in outcomes:
+                int_edges.append([outcomes[state_key],state_key,container_outcome])
         return int_edges
 
     def check_consistency(self):
-        for (co,cso) in self._outcome_map.iteritems():
-            for state_label,outcome in cso.iteritems():
+        for (co,cso) in ((k,self._outcome_map[k]) for k in self._outcome_map):
+            for state_label,outcome in ((k,cso[k]) for k in cso):
                 if outcome not in self._states[state_label].get_registered_outcomes():
                     raise smach.InvalidTransitionError(
                             'Outcome map in SMACH Concurrence references a state outcome that does not exist. Requested state outcome: \'%s\', but state \'%s\' only has outcomes %s' %

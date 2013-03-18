@@ -207,7 +207,7 @@ class ActionServerWrapper():
         self.userdata[self._goal_key] = goal       
 
         # Store mapped goal slots in local userdata
-        for from_key,to_key in self._goal_slots_map.iteritems():
+        for from_key,to_key in ((k,self._goal_slots_map[k]) for k in self._goal_slots_map):
             self.userdata[to_key] = getattr(goal,from_key)
 
         # Run the state machine (this blocks)
@@ -232,7 +232,7 @@ class ActionServerWrapper():
         result = self.userdata[self._result_key]
 
         # Store mapped slots in result
-        for from_key,to_key in self._result_slots_map.iteritems():
+        for from_key,to_key in ((k,self._result_slots_map) for k in self._result_slots_map):
             setattr(result,from_key,self.userdata[to_key])
 
         # If any of the result members have been returned to the parent ud

@@ -22,7 +22,7 @@ class UserData(object):
 
     def extract(self, keys, remapping):
         ud = UserData()
-        reverse_remapping = dict([(v,k) for (k,v) in remapping.iteritems()])
+        reverse_remapping = dict([(remapping[k],k) for k in remapping])
         if len(reverse_remapping) != len(remapping):
             smach.logerr("SMACH userdata remapping is not one-to-one: " + str(remapping))
         for k in keys:
@@ -46,7 +46,7 @@ class UserData(object):
         self._data[key] = item
 
     def keys(self):
-        return self._data.keys()
+        return list(self._data.keys())
 
     def __contains__(self,key):
         return key in self._data
@@ -62,7 +62,7 @@ class UserData(object):
             with self._locks[name]:
                 temp = self._data[name]
         except:
-            smach.logerr("Userdata key '%s' not available. Available keys are: %s" % (name, self._data.keys()))
+            smach.logerr("Userdata key '%s' not available. Available keys are: %s" % (name, str(list(self._data.keys()))))
             raise KeyError()
 
         return temp
@@ -70,7 +70,7 @@ class UserData(object):
     def __setattr__(self, name, value):
         """Overload setattr to be thread safe."""
         # If we're still in __init__ don't do anything special
-        if name[0] == '_' or not self.__dict__.has_key('_UserData__initialized'):
+        if name[0] == '_' or '_UserData__initialized' not in self.__dict__:
             return object.__setattr__(self, name, value)
 
         if not name in self._locks.keys():
@@ -111,7 +111,7 @@ class Const(object):
         return get_const(attr)
 
     def __setattr__(self, name, value):
-        if not self.__dict__.has_key('_const__initialized'): 
+        if '_const__initialized' not in self.__dict__: 
             return object.__setattr__(self, name, value)
         smach.logerr("Attempting to set '%s' but this member is read-only." % name)
         raise TypeError()
@@ -170,7 +170,7 @@ class Remapper(UserData):
         return getattr(self._ud, self._remap(name))
 
     def __setattr__(self, name, value):
-        if name[0] == '_' or not self.__dict__.has_key('_Remapper__initialized'):
+        if name[0] == '_' or '_Remapper__initialized' not in self.__dict__:
             return object.__setattr__(self, name, value)
         if name not in self._output:
             smach.logerr("Writing to SMACH userdata key '%s' but the only keys that were declared as output from this state were: %s." % (name, self._output))

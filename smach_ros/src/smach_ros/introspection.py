@@ -97,8 +97,7 @@ class IntrospectionClient():
                     local_data._data = pickle.loads(msg_response.local_data)
                     ud_match = all([\
                             (key in local_data and local_data._data[key] == initial_userdata._data[key])\
-                            for (key,value)\
-                            in initial_userdata._data.iteritems()])
+                            for key in initial_userdata._data])
 
                     rospy.logdebug("STATE MATCH: "+str(state_match)+", UD_MATCH: "+str(ud_match))
 
@@ -178,7 +177,7 @@ class ContainerProxy():
 
     def _publish_structure(self, info_str = ''):
         path = self._path
-        children = self._container.get_children().keys()
+        children = list(self._container.get_children().keys())
 
         internal_outcomes = [] 
         outcomes_from = [] 
@@ -209,7 +208,7 @@ class ContainerProxy():
         # Construct messages
         with self._status_pub_lock:
             path = self._path
-            children = self._container.get_children().keys()
+            children = list(self._container.get_children().keys())
             
             #print str(structure_msg)
             # Construct status message
@@ -287,7 +286,7 @@ class IntrospectionServer():
             path = ''
 
         # Get a list of children that are also containers
-        for (label, child) in state.get_children().iteritems():
+        for (label, child) in state.get_children().items():
             # If this is also a container, recursei into it
             if isinstance(child, smach.container.Container):
                 self.construct(server_name, child, path+'/'+label)
