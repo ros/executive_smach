@@ -10,7 +10,7 @@ string[] initial_states
 string[] active_states
 
 # A pickled user data structure
-string local_data
+uint8[] local_data
 
 # Debugging info string
 string info
