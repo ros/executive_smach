@@ -13,8 +13,6 @@
   <author>Jonathan Bohren</author>
   <author>Wim Meeussen</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
-
   <run_depend>smach</run_depend>
   <run_depend>emach_ros</run_depend>
   <run_depend>smach_msgs</run_depend>
