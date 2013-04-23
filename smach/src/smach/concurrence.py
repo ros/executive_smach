@@ -1,4 +1,3 @@
-
 import threading
 import traceback
 import copy
@@ -373,7 +372,7 @@ class Concurrence(smach.container.Container):
         self.userdata.update(userdata)
 
     def get_active_states(self):
-        return [label for (label,outcome) in ((k,self._child_outcomes[k]) in self._child_outcomes) if outcome is None]
+        return [label for (label,outcome) in ((k,self._child_outcomes[k]) for k in self._child_outcomes) if outcome is None]
 
     def get_internal_edges(self):
         int_edges = []
