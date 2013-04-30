@@ -7,7 +7,7 @@
     interfaces for smach.  
   </description>
 
-  <maintainer email="jbo@jhu.edu"></maintainer>
+  <maintainer email="jbo@jhu.edu">Jonathan Bohren</maintainer>
   <license>BSD</license>
 
   <author>Jonathan Bohren</author>
