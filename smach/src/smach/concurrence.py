@@ -247,7 +247,7 @@ class Concurrence(smach.container.Container):
             if all([o is not None for o in self._child_outcomes.values()]):
                 break
             self._done_cond.acquire()
-            self._done_cond.wait()
+            self._done_cond.wait(0.1)
             self._done_cond.release()
 
         # Check for user code exception
