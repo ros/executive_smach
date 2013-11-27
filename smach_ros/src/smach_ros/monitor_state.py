@@ -24,6 +24,11 @@ class MonitorState(smach.State):
         self._trigger_event = threading.Event()
 
     def execute(self, ud):
+        # If prempted before even getting a chance, give up.
+        if self.preempt_requested():
+            self.service_preempt()
+            return 'preempted'
+        
         self._n_checks = 0
         self._trigger_event.clear()
         
