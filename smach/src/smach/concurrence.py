@@ -332,7 +332,7 @@ class Concurrence(smach.container.Container):
 
         # Make sure the child returned an outcome
         if self._child_outcomes[label] is None:
-            raise smach.InvalidStateexception("Concurrent state '%s' returned no outcome on termination." % label)
+            raise smach.InvalidStateError("Concurrent state '%s' returned no outcome on termination." % label)
         else:
             smach.loginfo("Concurrent state '%s' returned outcome '%s' on termination." % (label, self._child_outcomes[label]))
 
