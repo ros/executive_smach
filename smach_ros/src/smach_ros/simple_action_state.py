@@ -131,8 +131,9 @@ class SimpleActionState(State):
         # Set goal generation policy
         if goal and hasattr(goal, '__call__'):
             raise smach.InvalidStateError("Goal object given to SimpleActionState that IS a function object")
-        if not all([s in action_spec().action_goal.goal.__slots__ for s in goal_slots]):
-            raise smach.InvalidStateError("Goal slots specified are not valid slots.")
+        sl = action_spec().action_goal.goal.__slots__
+        if not all([s in sl for s in goal_slots]):
+            raise smach.InvalidStateError("Goal slots specified are not valid slots. Available slots: %s; specified slots: %s" % (sl, goal_slots))
         if goal_cb and not hasattr(goal_cb, '__call__'):
             raise smach.InvalidStateError("Goal callback object given to SimpleActionState that IS NOT a function object")
 
