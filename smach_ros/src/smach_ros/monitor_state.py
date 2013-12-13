@@ -50,8 +50,8 @@ class MonitorState(smach.State):
                 self._trigger_cond.acquire()
                 self._trigger_cond.notify()
                 self._trigger_cond.release()
-        except:
-            rospy.logerr("Error thrown while executing condition callback %s" % str(self._cond_cb))
+        except Exception as e:
+            rospy.logerr("Error thrown while executing condition callback %s: %s" % (str(self._cond_cb), e))
             self._trigger_cond.acquire()
             self._trigger_cond.notify()
             self._trigger_cond.release()
