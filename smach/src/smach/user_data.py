@@ -120,7 +120,7 @@ class Const(object):
         smach.logerr("Attempting to delete '%s' but this member is read-only." % name)
         raise TypeError()
 
-class Remapper(UserData):
+class Remapper(object):
     """Key-remapping proxy to a SMACH userdata structure."""
     def __init__(self, ud, input_keys=[], output_keys=[], remapping={}):
         self._ud = ud
