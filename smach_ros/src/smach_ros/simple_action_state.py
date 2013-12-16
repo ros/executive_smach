@@ -74,7 +74,7 @@ class SimpleActionState(State):
         goal_cb is defined.
 
         @type goal_cb: callable
-        @param goal_cb: If the goal for this action needs tobe generated at
+        @param goal_cb: If the goal for this action needs to be generated at
         runtime, a callback can be stored which modifies the default goal
         object. The callback is passed two parameters:
             - userdata
@@ -124,6 +124,7 @@ class SimpleActionState(State):
 
         # Set timeouts
         self._goal_status = 0
+        self._goal_result = None
         self._exec_timeout = exec_timeout
         self._preempt_timeout = preempt_timeout
         self._server_wait_timeout = server_wait_timeout
@@ -210,8 +211,8 @@ class SimpleActionState(State):
         self._status = SimpleActionState.WAITING_FOR_SERVER
 
         # Construct action client, and wait for it to come active
-        self._action_client = SimpleActionClient(action_name,action_spec)
-        self._action_wait_thread = threading.Thread(name=self._action_name+'/wait_for_server',target = self._wait_for_server)
+        self._action_client = SimpleActionClient(action_name, action_spec)
+        self._action_wait_thread = threading.Thread(name=self._action_name+'/wait_for_server', target=self._wait_for_server)
         self._action_wait_thread.start()
 
         self._execution_timer_thread = None
@@ -271,11 +272,14 @@ class SimpleActionState(State):
             else:
                 # Wait for the server in this thread (This can also be preempted)
                 self._wait_for_server()
-            rospy.loginfo("Connected to action server '%s'." % self._action_name)
+
+            if not self.preempt_requested():
+                # In case of preemption we probably didn't connect
+                rospy.loginfo("Connected to action server '%s'." % self._action_name)
 
         # Check for preemption before executing
         if self.preempt_requested():
-            rospy.loginfo("Preempting  %s before sending goal." % self._action_name)
+            rospy.loginfo("Preempting %s before sending goal." % self._action_name)
             self.service_preempt()
             return 'preempted'
 
@@ -292,17 +296,17 @@ class SimpleActionState(State):
 
         # Write goal fields from userdata if set
         for key in self._goal_slots:
-            setattr(self._goal,key,ud[key])
+            setattr(self._goal, key, ud[key])
 
         # Call user-supplied callback, if set, to get a goal
         if self._goal_cb is not None:
             try:
                 goal_update = self._goal_cb(
                         smach.Remapper(
-                            ud,
-                            self._goal_cb_input_keys,
-                            self._goal_cb_output_keys,
-                            []),
+                                ud,
+                                self._goal_cb_input_keys,
+                                self._goal_cb_output_keys,
+                                []),
                         self._goal,
                         *self._goal_cb_args,
                         **self._goal_cb_kwargs)
@@ -327,7 +331,7 @@ class SimpleActionState(State):
 
         # Preempt timeout watch thread
         if self._exec_timeout:
-            self._execution_timer_thread = threading.Thread(name=self._action_name+'/preempt_watchdog',target = self._execution_timer)
+            self._execution_timer_thread = threading.Thread(name=self._action_name+'/preempt_watchdog', target=self._execution_timer)
             self._execution_timer_thread.start()
 
         # Wait for action to finish
@@ -339,10 +343,10 @@ class SimpleActionState(State):
             try:
                 result_cb_outcome = self._result_cb(
                         smach.Remapper(
-                            ud,
-                            self._result_cb_input_keys,
-                            self._result_cb_output_keys,
-                            []),
+                                ud,
+                                self._result_cb_input_keys,
+                                self._result_cb_output_keys,
+                                []),
                         self._goal_status,
                         self._goal_result)
                 if result_cb_outcome is not None and result_cb_outcome not in self.get_registered_outcomes():
@@ -356,7 +360,7 @@ class SimpleActionState(State):
             ud[self._result_key] = self._goal_result
 
         for key in self._result_slots:
-            ud[key] = getattr(self._goal_result,key)
+            ud[key] = getattr(self._goal_result, key)
 
         # Check status
         if self._status == SimpleActionState.INACTIVE:
@@ -393,7 +397,7 @@ class SimpleActionState(State):
         """
         rospy.logdebug("Action "+self._action_name+" has gone active.")
 
-    def _goal_feedback_cb(self,feedback):
+    def _goal_feedback_cb(self, feedback):
         """Goal Feedback Callback"""
         rospy.logdebug("Action "+self._action_name+" sent feedback.")
 
@@ -405,7 +409,7 @@ class SimpleActionState(State):
         """
         def get_result_str(i):
             strs = ('PENDING','ACTIVE','PREEMPTED','SUCCEEDED','ABORTED','REJECTED','LOST')
-            if i <len(strs):
+            if i < len(strs):
                 return strs[i]
             else:
                 return 'UNKNOWN ('+str(i)+')'

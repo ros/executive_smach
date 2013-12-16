@@ -15,7 +15,7 @@ class State(object):
     declared before the state goes active (when its C{execute()} method is
     called) and are checked during construction.
     """
-    def __init__(self, outcomes = [], input_keys = [], output_keys = [], io_keys = []):
+    def __init__(self, outcomes=[], input_keys=[], output_keys=[], io_keys=[]):
         """State constructor
         @type outcomes: array of strings
         @param outcomes: Custom outcomes for this state.
@@ -36,8 +36,8 @@ class State(object):
         self._outcomes = set(outcomes)
 
         # Store userdata interface description
-        self._input_keys = set(input_keys+io_keys)
-        self._output_keys = set(output_keys+io_keys)
+        self._input_keys = set(input_keys + io_keys)
+        self._output_keys = set(output_keys + io_keys)
 
         # Declare preempt flag
         self._preempt_requested = False
@@ -53,7 +53,7 @@ class State(object):
         raise NotImplementedError()
     
     ### SMACH Interface API
-    def register_outcomes(self,new_outcomes):
+    def register_outcomes(self, new_outcomes):
         """Add outcomes to the outcome set."""
         self._outcomes = self._outcomes.union(new_outcomes)
 
@@ -72,7 +72,7 @@ class State(object):
         state is active.
         """
         self._input_keys = self._input_keys.union(keys)
-        self._ouput_keys = self._output_keys.union(keys)
+        self._output_keys = self._output_keys.union(keys)
 
     def register_input_keys(self, keys):
         """Add keys to the set of keys from which this state may read.

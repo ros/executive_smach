@@ -23,7 +23,7 @@ class IntrospectionClient():
     def get_servers(self):
         """Get the base names that are broadcasting smach states."""
 
-        # Get the currently broadcasting smach introspection topics
+        # Get the currently broadcasted smach introspection topics
         topics = rostopic.find_by_type('smach_msgs/SmachContainerStatus')
 
         return [t[:t.rfind(STATUS_TOPIC)] for t in topics]
@@ -72,9 +72,9 @@ class IntrospectionClient():
             msg_response.initial_states = msg.initial_states
             msg_response.local_data = msg.local_data
 
-        # Create a subscriber to verify the request went trhough
-        state_sub = rospy.Subscriber(server+STATUS_TOPIC,SmachContainerStatus,
-                callback = local_cb, callback_args = msg_response)
+        # Create a subscriber to verify the request went through
+        state_sub = rospy.Subscriber(server+STATUS_TOPIC, SmachContainerStatus,
+                callback=local_cb, callback_args=msg_response)
 
         # Create a publisher to send the command
         rospy.logdebug("Sending initial state command: "+str(initial_status_msg.path)+" on topic '"+server+INIT_TOPIC+"'")
@@ -85,7 +85,7 @@ class IntrospectionClient():
 
         # Block until we get a new state back 
         if timeout is not None:
-            while rospy.Time.now()-start_time < timeout:
+            while rospy.Time.now() - start_time < timeout:
                 # Send the initial state command
                 init_pub.publish(initial_status_msg)
 
@@ -112,7 +112,7 @@ class ContainerProxy():
 
     This class is used as a container for introspection and debugging.
     """
-    def __init__(self, server_name, container, path, update_rate = rospy.Duration(2.0)):
+    def __init__(self, server_name, container, path, update_rate=rospy.Duration(2.0)):
         """Constructor for tree-wide data structure.
         """
         self._path = path
@@ -121,20 +121,20 @@ class ContainerProxy():
         self._status_pub_lock = threading.Lock()
 
         # Advertise init service
-        self._init_cmd= rospy.Subscriber(
-                server_name+INIT_TOPIC,
+        self._init_cmd = rospy.Subscriber(
+                server_name + INIT_TOPIC,
                 SmachContainerInitialStatusCmd,
                 self._init_cmd_cb)
 
         # Advertise structure publisher
         self._structure_pub = rospy.Publisher(
-                name = server_name+STRUCTURE_TOPIC,
-                data_class = SmachContainerStructure)
+                name=server_name + STRUCTURE_TOPIC,
+                data_class=SmachContainerStructure)
 
         # Advertise status publisher
         self._status_pub = rospy.Publisher(
-                name = server_name+STATUS_TOPIC,
-                data_class = SmachContainerStatus)
+                name=server_name + STATUS_TOPIC,
+                data_class=SmachContainerStatus)
 
         # Set transition callback
         container.register_transition_cb(self._transition_cb)
@@ -143,6 +143,8 @@ class ContainerProxy():
         self._status_pub_thread = threading.Thread(name=server_name+':status_publisher',target=self._status_pub_loop)
 
         self._structure_pub_thread = threading.Thread(name=server_name+':structure_publisher',target=self._structure_pub_loop)
+
+        self._keep_running = False
 
     def start(self):
         self._keep_running = True
@@ -175,7 +177,7 @@ class ContainerProxy():
             except:
                 pass
 
-    def _publish_structure(self, info_str = ''):
+    def _publish_structure(self, info_str=''):
         path = self._path
         children = list(self._container.get_children().keys())
 
@@ -203,12 +205,11 @@ class ContainerProxy():
             if not rospy.is_shutdown():
                 rospy.logerr("Publishing SMACH introspection structure message failed.")
 
-    def _publish_status(self, info_str = ''):
+    def _publish_status(self, info_str=''):
         """Publish current state of this container."""
         # Construct messages
         with self._status_pub_lock:
             path = self._path
-            children = list(self._container.get_children().keys())
             
             #print str(structure_msg)
             # Construct status message
@@ -241,7 +242,7 @@ class ContainerProxy():
         # Check if this init message is directed at this path
         rospy.logdebug('Received init message for path: '+msg.path+' to '+str(initial_states))
         if msg.path == self._path:
-            if all([s in self._container.get_children() for s in initial_states]):
+            if all(s in self._container.get_children() for s in initial_states):
                 ud = smach.UserData()
                 ud._data = pickle.loads(msg.local_data)
                 rospy.logdebug("Setting initial state in smach path: '"+self._path+"' to '"+str(initial_states)+"' with userdata: "+str(ud._data))
@@ -254,6 +255,7 @@ class ContainerProxy():
                 self._publish_status("REMOTE_INIT")
             else:
                 rospy.logerr("Attempting to set initial state in container '"+self._path+"' to '"+str(initial_states)+"', but this container only has states: "+str(self._container.get_children()))
+
 
 class IntrospectionServer():
     """Server for providing introspection and control for smach."""
@@ -287,7 +289,7 @@ class IntrospectionServer():
 
         # Get a list of children that are also containers
         for (label, child) in state.get_children().items():
-            # If this is also a container, recursei into it
+            # If this is also a container, recurse into it
             if isinstance(child, smach.container.Container):
                 self.construct(server_name, child, path+'/'+label)
 

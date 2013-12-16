@@ -119,8 +119,8 @@ class ActionServerWrapper():
         self._action_server = SimpleActionServer(
                 self._server_name,
                 self._action_spec,
-                execute_cb = self.execute_cb,
-                auto_start = False)
+                execute_cb=self.execute_cb,
+                auto_start=False)
 
         # Store and check the terminal outcomes
         self._succeeded_outcomes = set(succeeded_outcomes)
@@ -232,15 +232,15 @@ class ActionServerWrapper():
         result = self.userdata[self._result_key]
 
         # Store mapped slots in result
-        for from_key,to_key in ((k,self._result_slots_map) for k in self._result_slots_map):
-            setattr(result,from_key,self.userdata[to_key])
+        for from_key, to_key in ((k, self._result_slots_map) for k in self._result_slots_map):
+            setattr(result, from_key, self.userdata[to_key])
 
         # If any of the result members have been returned to the parent ud
         # scope, overwrite the ones from the full structure
         if self._pack_result_slots:
             for slot in result.__slots__:
                 if slot in self.userdata:
-                    setattr(result,slot,self.userdata[slot])
+                    setattr(result, slot, self.userdata[slot])
 
         # Set terminal state based on state machine state outcome
         if container_outcome in self._succeeded_outcomes:

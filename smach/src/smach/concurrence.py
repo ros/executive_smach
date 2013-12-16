@@ -193,7 +193,7 @@ class Concurrence(smach.container.Container):
 
     ### State interface
     def execute(self, parent_ud = smach.UserData()):
-        """Overloaded execute method.
+        """Overridden execute method.
         This starts all the threads.
         """
         # Reset child outcomes
@@ -366,7 +366,9 @@ class Concurrence(smach.container.Container):
     def set_initial_state(self, initial_states, userdata):
         if initial_states > 0:
             if initial_states < len(self._states):
-                logwarn("Attempting to set initial states in Concurrence container, but Concurrence children are always all executed initially")
+                smach.logwarn("Attempting to set initial states in Concurrence"
+                              " container, but Concurrence children are always"
+                              " all executed initially, ignoring call.")
 
         # Set local userdata
         self.userdata.update(userdata)
