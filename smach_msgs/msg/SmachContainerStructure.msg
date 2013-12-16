@@ -7,6 +7,7 @@ string path
 string[] children
 
 # The outcome edges
+# Each index across these arrays denote one edge
 string[] internal_outcomes
 string[] outcomes_from
 string[] outcomes_to
