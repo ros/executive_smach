@@ -100,11 +100,6 @@ class Container(smach.state.State):
         """Check consistency of this container."""
         raise NotImplementedError()
 
-    def set_userdata(self, userdata):
-        """Stores reference to parent userdata if share flag is set."""
-        # TODO: Never used, Document when to implement or clean
-        pass
-
     ### Automatic Data passing
     def _copy_input_keys(self, parent_ud, ud):
         if parent_ud is not None:

@@ -503,14 +503,6 @@ class StateMachine(smach.container.Container):
         if len(errors) > 0:
             raise smach.InvalidTransitionError("State machine failed consistency check: "+errors+"\n\n\tAvailable states: "+str(list(available_states)))
 
-    def set_userdata(self,userdata):
-        """Propagate an updated userdata structure into this state machine."""
-        # Update the container's userdata
-        smach.Container.set_userdata(self, userdata)
-        # Update the userdata of the contained states
-        for state in self._states.values():
-            state.set_userdata(self.userdata) # FIXME: States do not have that method
-
     ### Introspection methods
     def is_running(self):
         """Returns true if the state machine is running."""
