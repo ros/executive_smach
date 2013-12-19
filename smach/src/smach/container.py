@@ -93,7 +93,6 @@ class Container(smach.state.State):
 
         @rtype: list of 3-tuple
         """
-        # FIXME: current implementations return a list of list
         raise NotImplementedError()
 
     def check_consistency(self):

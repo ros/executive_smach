@@ -431,7 +431,7 @@ class StateMachine(smach.container.Container):
         int_edges = []
         for (from_label,transitions) in ((k,self._transitions[k]) for k in self._transitions):
             for (outcome,to_label) in ((k,transitions[k]) for k in transitions):
-                int_edges.append([outcome,from_label,to_label])
+                int_edges.append((outcome, from_label, to_label))
         return int_edges
 
     ### Validation methods

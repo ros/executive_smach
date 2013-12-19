@@ -380,7 +380,7 @@ class Concurrence(smach.container.Container):
         int_edges = []
         for (container_outcome, outcomes) in ((k,self._outcome_map[k]) for k in self._outcome_map):
             for state_key in outcomes:
-                int_edges.append([outcomes[state_key],state_key,container_outcome])
+                int_edges.append((outcomes[state_key], state_key, container_outcome))
         return int_edges
 
     def check_consistency(self):
