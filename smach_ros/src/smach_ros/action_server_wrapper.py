@@ -1,4 +1,3 @@
-
 import roslib; roslib.load_manifest('smach_ros')
 import rospy
 
@@ -232,7 +231,7 @@ class ActionServerWrapper():
         result = self.userdata[self._result_key]
 
         # Store mapped slots in result
-        for from_key,to_key in ((k,self._result_slots_map) for k in self._result_slots_map):
+        for from_key,to_key in ((k,self._result_slots_map[k]) for k in self._result_slots_map):
             setattr(result,from_key,self.userdata[to_key])
 
         # If any of the result members have been returned to the parent ud
