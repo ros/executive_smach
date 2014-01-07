@@ -238,9 +238,9 @@ class Iterator(smach.container.Container):
             if outcome in self._final_outcome_map:
                 container_outcome = self._final_outcome_map[outcome]
             if outcome == container_outcome:
-                int_edges.append([outcome, self._state_label, None])
+                int_edges.append((outcome, self._state_label, None))
             else:
-                int_edges.append([outcome, self._state_label, container_outcome])
+                int_edges.append((outcome, self._state_label, container_outcome))
 
         return int_edges
 

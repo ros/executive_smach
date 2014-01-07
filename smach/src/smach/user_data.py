@@ -22,7 +22,7 @@ class UserData(object):
 
     def extract(self, keys, remapping):
         ud = UserData()
-        reverse_remapping = dict([(remapping[k],k) for k in remapping])
+        reverse_remapping = {remapping[k]: k for k in remapping}
         if len(reverse_remapping) != len(remapping):
             smach.logerr("SMACH userdata remapping is not one-to-one: " + str(remapping))
         for k in keys:
@@ -52,7 +52,7 @@ class UserData(object):
         return key in self._data
 
     def __getattr__(self, name):
-        """Overload getattr to be thread safe."""
+        """Override getattr to be thread safe."""
         if name[0] == '_':
             return object.__getattr__(self, name)
         if not name in self._locks.keys():
@@ -68,7 +68,7 @@ class UserData(object):
         return temp
 
     def __setattr__(self, name, value):
-        """Overload setattr to be thread safe."""
+        """Override setattr to be thread safe."""
         # If we're still in __init__ don't do anything special
         if name[0] == '_' or '_UserData__initialized' not in self.__dict__:
             return object.__setattr__(self, name, value)
@@ -120,7 +120,7 @@ class Const(object):
         smach.logerr("Attempting to delete '%s' but this member is read-only." % name)
         raise TypeError()
 
-class Remapper(UserData):
+class Remapper(object):
     """Key-remapping proxy to a SMACH userdata structure."""
     def __init__(self, ud, input_keys=[], output_keys=[], remapping={}):
         self._ud = ud

@@ -50,7 +50,7 @@ class ServiceState(smach.State):
             self._request = request
 
         
-        if request_cb and not hasattr(request_cb, '__call__'):
+        if request_cb is not None and not hasattr(request_cb, '__call__'):
             raise smach.InvalidStateError("Request callback object given to ServiceState that IS NOT a function object")
 
         self._request_cb = request_cb
@@ -74,7 +74,7 @@ class ServiceState(smach.State):
         self.register_input_keys(request_slots)
 
         # Store response policy
-        if response_cb and not hasattr(response_cb, '__call__'):
+        if response_cb is not None and not hasattr(response_cb, '__call__'):
             raise smach.InvalidStateError("Response callback object given to ServiceState that IS NOT a function object")
 
         self._response_cb = response_cb
@@ -151,10 +151,10 @@ class ServiceState(smach.State):
             try:
                 request_update = self._request_cb(
                         smach.Remapper(
-                            ud,
-                            self._request_cb_input_keys,
-                            self._request_cb_output_keys,
-                            []),
+                                ud,
+                                self._request_cb_input_keys,
+                                self._request_cb_output_keys,
+                                []),
                         self._request,
                         *self._request_cb_args,
                         **self._request_cb_kwargs)
@@ -183,10 +183,10 @@ class ServiceState(smach.State):
             try:
                 response_cb_outcome = self._response_cb(
                         smach.Remapper(
-                            ud,
-                            self._response_cb_input_keys,
-                            self._response_cb_output_keys,
-                            []),
+                                ud,
+                                self._response_cb_input_keys,
+                                self._response_cb_output_keys,
+                                []),
                         self._response,
                         *self._response_cb_args,
                         **self._response_cb_kwargs)

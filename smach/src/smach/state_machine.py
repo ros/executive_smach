@@ -73,7 +73,7 @@ class StateMachine(smach.container.Container):
 
     ### Construction methods
     @staticmethod
-    def add(label, state, transitions = None, remapping = None):
+    def add(label, state, transitions=None, remapping=None):
         """Add a state to the opened state machine.
         
         @type label: string
@@ -125,9 +125,9 @@ class StateMachine(smach.container.Container):
         registered_outcomes = state.get_registered_outcomes()
 
         # Get a list of the unbound transitions
-        missing_transitions = dict([(o,None) for o in registered_outcomes if o not in transitions])
+        missing_transitions = {o: None for o in registered_outcomes if o not in transitions}
         transitions.update(missing_transitions)
-        smach.logdebug("State '%s' is missing transitions: %s" % (label,str(missing_transitions)))
+        smach.logdebug("State '%s' is missing transitions: %s" % (label, str(missing_transitions)))
 
         # Add state and transitions to the dictionary
         self._states[label] = state
@@ -146,17 +146,23 @@ class StateMachine(smach.container.Container):
         return state
 
     @staticmethod
-    def add_auto(label, state, connector_outcomes, transitions = None, remapping = None):
-        """Add a state to the state machine such that it automatically transitions to the next added state.
-        Each state added will receive an additional transition from it to the
-        state which is added after it. The transition will follow the outcome
-        specified at construction of this container.
-        
+    def add_auto(label, state, connector_outcomes, transitions=None, remapping=None):
+        """Add a state to the state machine such that it automatically
+        transitions to the next added state.
+
+        Each state added will receive an additional transition from it
+        to the state which is added after it for every outcome given
+        via connector_outcomes.
+
         @type label: string
         @param label: The label of the state being added.
-        
+
         @param state: An instance of a class implementing the L{State} interface.
-        
+
+        @type connector_outcomes: list of string
+        @param connector_outcomes: For which of the added state's outcomes a
+        transition to the next added state should be generated.
+
         @param transitions: A dictionary mapping state outcomes to other state
         labels. If one of these transitions follows the connector outcome
         specified in the constructor, the provided transition will override
@@ -170,7 +176,7 @@ class StateMachine(smach.container.Container):
 
         # Make sure the connector outcomes are valid for this state
         registered_outcomes = state.get_registered_outcomes()
-        if not all([co in registered_outcomes for co in connector_outcomes]):
+        if not all(co in registered_outcomes for co in connector_outcomes):
             raise smach.InvalidStateError("Attempting to auto-connect states with outcomes %s, but state '%s' only has registerd outcomes: %s" % (str(connector_outcomes), str(label), str(registered_outcomes)))
 
         # Store this state as the last state and store the connector outcomes
@@ -208,7 +214,7 @@ class StateMachine(smach.container.Container):
         # Make sure the state exists
         if self._current_label not in self._states:
             raise smach.InvalidStateError("State '%s' does not exist. Available states are: %s" %
-                    (str(self._current_label),str(list(self._states.keys()))))
+                    (self._current_label, list(self._states.keys())))
 
         # Check if a preempt was requested before or while the last state was running
         if self.preempt_requested():
@@ -243,17 +249,21 @@ class StateMachine(smach.container.Container):
             smach.logerr("State '%s' failed to execute." % self._current_label)
             raise ex
         except:
-            raise smach.InvalidUserCodeError("Could not execute state '%s' of type '%s': " % ( self._current_label, self._current_state ) + traceback.format_exc())
+            raise smach.InvalidUserCodeError("Could not execute state '%s' of type '%s': " %
+                                             (self._current_label, self._current_state)
+                                             + traceback.format_exc())
         finally:
             self._state_transitioning_lock.acquire()
 
         # Check if outcome was a potential outcome for this type of state
         if outcome not in self._current_state.get_registered_outcomes():
-            raise smach.InvalidTransitionError("Attempted to return outcome '%s' from state '%s' of type '%s' which only has registered outcomes: %s" %
-                (   str(outcome),
-                    str(self._current_label),
-                    str(self._current_state),
-                    str(self._current_state.get_registered_outcomes())))
+            raise smach.InvalidTransitionError(
+                    "Attempted to return outcome '%s' from state '%s' of"
+                    " type '%s' which only has registered outcomes: %s" %
+                    (outcome,
+                     self._current_label,
+                     self._current_state,
+                     self._current_state.get_registered_outcomes()))
 
         # Check if this outcome is actually mapped to any target
         if outcome not in self._current_transitions:
@@ -269,7 +279,8 @@ class StateMachine(smach.container.Container):
             self._set_current_state(transition_target)
 
             # Spew some info
-            smach.loginfo("State machine transitioning '%s':'%s'-->'%s'" % (str(last_state_label), str(outcome), str(transition_target)))
+            smach.loginfo("State machine transitioning '%s':'%s'-->'%s'" %
+                          (last_state_label, outcome, transition_target))
 
             # Call transition callbacks
             self.call_transition_cbs()
@@ -289,7 +300,8 @@ class StateMachine(smach.container.Container):
                 self._set_current_state(None)
 
                 # Spew some info
-                smach.loginfo("State machine terminating '%s':'%s':'%s'" % (str(last_state_label), str(outcome), str(transition_target)))
+                smach.loginfo("State machine terminating '%s':'%s':'%s'" %
+                              (last_state_label, outcome, transition_target))
 
                 # Call termination callbacks
                 self.call_termination_cbs([last_state_label],transition_target)
@@ -297,7 +309,7 @@ class StateMachine(smach.container.Container):
                 return transition_target
             else:
                 raise smach.InvalidTransitionError("Outcome '%s' of state '%s' with transition target '%s' is neither a registered state nor a registered container outcome." %
-                        (str(outcome), str(self._current_label), str(transition_target)))
+                        (outcome, self._current_label, transition_target))
         return None
 
     ### State Interface
@@ -332,7 +344,7 @@ class StateMachine(smach.container.Container):
 
             # Spew some info
             smach.loginfo("State machine starting in initial state '%s' with userdata: \n\t%s" %
-                    (self._current_label,str(list(self.userdata.keys()))))
+                    (self._current_label, list(self.userdata.keys())))
 
 
             # Call start callbacks
@@ -396,10 +408,12 @@ class StateMachine(smach.container.Container):
         return self._states[key]
 
     def set_initial_state(self, initial_states, userdata=smach.UserData()):
-        smach.logdebug("Setting initial state to "+str(initial_states))
+        smach.logdebug("Setting initial states to " + str(initial_states))
 
         if len(initial_states) > 1:
-            smach.logwarn("Attempting to set initial state to include more than one state, but the StateMachine container can only have one initial state.")
+            smach.logwarn("Attempting to set initial state to include more than"
+                          " one state, but the StateMachine container can only"
+                          " have one initial state. Taking the first one.")
 
         # Set the initial state label
         if len(initial_states) > 0:
@@ -417,7 +431,7 @@ class StateMachine(smach.container.Container):
         int_edges = []
         for (from_label,transitions) in ((k,self._transitions[k]) for k in self._transitions):
             for (outcome,to_label) in ((k,transitions[k]) for k in transitions):
-                int_edges.append([outcome,from_label,to_label])
+                int_edges.append((outcome, from_label, to_label))
         return int_edges
 
     ### Validation methods
@@ -457,44 +471,37 @@ class StateMachine(smach.container.Container):
             errors = errors + "\n\tInitial state label: '"+str(self._initial_state_label)+"' is not in the state machine."
 
         # Generate state specifications
-        state_specs = [
-            (label, self._states[label], self._transitions[label])
-            for label in self._states]
+        state_specs = [(label, self._states[label], self._transitions[label])
+                       for label in self._states]
         # Iterate over all states
         for label,state,transitions in state_specs:
             # Check that all potential outcomes are registered in this state
-            transition_states = set(
-                [s for s in transitions.values() if ((s is not None) and (s != ''))] )
+            transition_states = set([s for s in transitions.values()
+                                     if s is not None and s != ''])
             # Generate a list of missing states
             missing_states = transition_states.difference(available_states)
 
             # Check number of missing states
             if len(missing_states) > 0:
                 errors = (errors
-                    +"\n\tState '"+str(label)
-                    +"' references unknown states: "+str(list(missing_states)))
+                          + "\n\tState '" + str(label)
+                          + "' references unknown states: " + str(list(missing_states)))
 
             # Check terminal outcomes for this state
-            terminal_outcomes = set([o for o,s in ((k,transitions[k]) for k in transitions) if ((s is None) or (s == ''))])
-            # Terminal outcomes should be in the    registered outcomes of this state machine
+            terminal_outcomes = set([o for (o, s) in ((k, transitions[k])
+                                                      for k in transitions)
+                                     if s is None or s == ''])
+            # Terminal outcomes should be in the registered outcomes of this state machine
             missing_outcomes = terminal_outcomes.difference(registered_sm_outcomes)
             # Check number of missing outcomes
             if len(missing_outcomes) > 0:
                 errors = (errors
-                    +"\n\tState '"+str(label)
-                    +"' references unregistered outcomes: "+str(list(missing_outcomes)))
+                          + "\n\tState '" + str(label)
+                          + "' references unregistered outcomes: " + str(list(missing_outcomes)))
 
         # Check errors
         if len(errors) > 0:
             raise smach.InvalidTransitionError("State machine failed consistency check: "+errors+"\n\n\tAvailable states: "+str(list(available_states)))
-
-    def set_userdata(self,userdata):
-        """Propagate an updated userdata structure into this state machine."""
-        # Update the container's userdata
-        smach.Container.set_userdata(self, userdata)
-        # Update the userdata of the contained states
-        for state in self._states.values():
-            state.set_userdata(self.userdata)
 
     ### Introspection methods
     def is_running(self):

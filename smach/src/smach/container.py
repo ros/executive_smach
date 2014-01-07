@@ -32,9 +32,7 @@ class Container(smach.state.State):
             outcomes=[],
             input_keys=[],
             output_keys=[]):
-        """Constructor.
-        Initializes callback lists (empty).
-        """
+        """Initializes callback lists as empty lists."""
         smach.state.State.__init__(self, outcomes, input_keys, output_keys)
 
         self.userdata = smach.UserData()
@@ -62,7 +60,7 @@ class Container(smach.state.State):
         raise NotImplementedError()
     
     def set_initial_state(self, initial_states, userdata):
-        """Set initial active state of a container.
+        """Set initial active states of a container.
         
         @type initial_states: list of string
         @param initial_states: A description of the initial active state of this
@@ -74,14 +72,14 @@ class Container(smach.state.State):
         raise NotImplementedError()
 
     def get_initial_states(self):
-        """Get the initial state description.
+        """Get the initial states description.
         
         @rtype: list of string
         """
         raise NotImplementedError()
 
     def get_active_states(self):
-        """Get a description of the current state.
+        """Get a description of the current states.
         Note that this is specific to container implementation.
 
         @rtype: list of string
@@ -90,7 +88,7 @@ class Container(smach.state.State):
 
     def get_internal_edges(self):
         """Get the internal outcome edges of this container.
-        Get a list of 3-tuples (OUTCOME, LABEL_FROM, LABEL_TO) which coresspond
+        Get a list of 3-tuples (OUTCOME, LABEL_FROM, LABEL_TO) which correspond
         to transitions inside this container.
 
         @rtype: list of 3-tuple
@@ -98,12 +96,8 @@ class Container(smach.state.State):
         raise NotImplementedError()
 
     def check_consistency(self):
-        """Check constistency of this container."""
+        """Check consistency of this container."""
         raise NotImplementedError()
-
-    def set_userdata(self, userdata):
-        """Stores reference to parent userdata if share flage is set."""
-        return
 
     ### Automatic Data passing
     def _copy_input_keys(self, parent_ud, ud):
@@ -113,7 +107,7 @@ class Container(smach.state.State):
                 try:
                     ud[ik] = parent_ud[ik]
                 except KeyError:
-                    smach.logwarn("Attempting to copy input key '%s', but this key does not exist.")
+                    smach.logwarn("Attempting to copy input key '%s', but this key does not exist." % ik)
 
     def _copy_output_keys(self, ud, parent_ud):
         if parent_ud is not None:
@@ -122,7 +116,7 @@ class Container(smach.state.State):
                 try:
                     parent_ud[ok] = ud[ok]
                 except KeyError:
-                    smach.logwarn("Attempting to copy output key '%s', but this key does not exist.")
+                    smach.logwarn("Attempting to copy output key '%s', but this key does not exist." % ok)
 
     ### Callback registreation methods
     def register_start_cb(self, start_cb, cb_args=[]):

@@ -1,27 +1,32 @@
 
 import smach
 
-__all__ = ['InvalidTransitionError',
-        'InvalidStateError',
-        'InvalidConstructionError',
-        'InvalidUserCodeError']
+__all__ = ['SmachError',
+           'InvalidTransitionError',
+           'InvalidStateError',
+           'InvalidConstructionError',
+           'InvalidUserCodeError']
 
-class InvalidTransitionError():
-    def __init__(self,message):
-        smach.logerr("InvalidTransitionError: "+message)
-        self.message = message
 
-class InvalidStateError():
-    def __init__(self,message):
-        smach.logerr("InvalidStateError: "+message)
-        self.message = message
+class SmachError(Exception):
+    """Exception printing to console on instantiation"""
+    def __init__(self, message):
+        smach.logerr(self.__class__.__name__ + ": " + message)
+        Exception.__init__(self, message)
 
-class InvalidUserCodeError():
-    def __init__(self,message):
-        smach.logerr("InvalidUserCodeError: "+message)
-        self.message = message
 
-class InvalidConstructionError():
-    def __init__(self,message):
-        smach.logerr("InvalidConstructionError: "+message)
-        self.message = message
+class InvalidTransitionError(SmachError):
+    def __init__(self, message):
+        SmachError.__init__(self, message)
+
+class InvalidStateError(SmachError):
+    def __init__(self, message):
+        SmachError.__init__(self, message)
+
+class InvalidUserCodeError(SmachError):
+    def __init__(self, message):
+        SmachError.__init__(self, message)
+
+class InvalidConstructionError(SmachError):
+    def __init__(self, message):
+        SmachError.__init__(self, message)
