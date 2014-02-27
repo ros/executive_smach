@@ -175,6 +175,7 @@ class Concurrence(smach.container.Container):
         # Condition variables for threading synchronization
         self._user_code_exception = False
         self._done_cond = threading.Condition()
+        self._ready_event =  threading.Event()
 
     ### Construction methods
     @staticmethod
@@ -196,6 +197,9 @@ class Concurrence(smach.container.Container):
         """Overloaded execute method.
         This starts all the threads.
         """
+        # Clear the ready event
+        self._ready_event.clear()
+        
         # Reset child outcomes
         self._child_outcomes = {}
 
@@ -224,6 +228,11 @@ class Concurrence(smach.container.Container):
         
         # Wait for done notification
         self._done_cond.acquire()
+        
+        # Notify all threads ready to go
+        self._ready_event.set()
+        
+        # Wait for a done notification from a thread
         self._done_cond.wait()
         self._done_cond.release()
 
@@ -235,10 +244,10 @@ class Concurrence(smach.container.Container):
 
         # Wait for all states to terminate
         while not smach.is_shutdown():
-            if all([o is not None for o in self._child_outcomes.values()]):
+            if all([not t.isAlive() for t in self._threads.values()]):
                 break
             self._done_cond.acquire()
-            self._done_cond.wait()
+            self._done_cond.wait(0.1)
             self._done_cond.release()
 
         # Check for user code exception
@@ -315,6 +324,10 @@ class Concurrence(smach.container.Container):
 
     def _state_runner(self,label):
         """Runs the states in parallel threads."""
+
+        # Wait until all threads are ready to start before beginnging
+        self._ready_event.wait()
+        
         self.call_transition_cbs()
 
         # Execute child state
