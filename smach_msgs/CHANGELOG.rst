@@ -2,8 +2,8 @@
 Changelog for package smach_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.0 (2014-04-17)
+------------------
 * cleaning up and removing rosbuild support
 * merging groovy and hydro
 * Add explanations within message definitions

@@ -2,8 +2,8 @@
 Changelog for package smach
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.0 (2014-04-17)
+------------------
 * Merging changes, resolving conflicts, from strands-project (@cburbridge)
 * cleaning up and removing rosbuild support
 * merging groovy and hydro

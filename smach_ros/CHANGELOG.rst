@@ -2,8 +2,8 @@
 Changelog for package smach_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.0 (2014-04-17)
+------------------
 * smach_ros: Adding rostests to cmakelists
 * Merging changes, resolving conflicts, from strands-project (@cburbridge)
 * cleaning up and removing rosbuild support
