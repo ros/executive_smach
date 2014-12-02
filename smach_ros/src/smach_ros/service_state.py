@@ -115,11 +115,14 @@ class ServiceState(smach.State):
 
         # Make sure we're connected to the service
         try:
-            while not rospy.is_shutdown() and self._proxy is None:
+            while self._proxy is None:
                 if self.preempt_requested():
                     rospy.loginfo("Preempting while waiting for service '%s'." % self._service_name)
                     self.service_preempt()
                     return 'preempted'
+                if rospy.is_shutdown():
+                    rospy.loginfo("Shutting down while waiting for service '%s'." % self._service_name)
+                    return 'aborted'
                 try:
                     rospy.wait_for_service(self._service_name,1.0)
                     self._proxy = rospy.ServiceProxy(self._service_name, self._service_spec)
