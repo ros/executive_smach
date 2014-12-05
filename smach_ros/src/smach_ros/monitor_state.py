@@ -51,13 +51,13 @@ class MonitorState(smach.State):
         return 'invalid'
 
     def _cb(self,msg,ud) :
-        self._n_checks += 1
         try:
             if (self._max_checks > 0 and self._n_checks >= self._max_checks) or not self._cond_cb(ud, msg):
                 self._trigger_event.set()
         except Exception as e:
             rospy.logerr("Error thrown while executing condition callback %s: %s" % (str(self._cond_cb), e))
             self._trigger_event.set()
+        self._n_checks += 1
 
     def request_preempt(self):
         smach.State.request_preempt(self)
