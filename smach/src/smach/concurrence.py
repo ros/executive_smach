@@ -232,6 +232,8 @@ class Concurrence(smach.container.Container):
                 smach.logwarn("SMACH Concurrence detected preempt request")
                 request_preempt()
                 
+        if smach.is_shutdown():
+            smach.logwarn("SMACH is shutdown")
         smach.logdebug("SMACH Concurrence child states triggered done")
         # Preempt any running states
         smach.logdebug("SMACH Concurrence preempting running states.")
@@ -240,7 +242,8 @@ class Concurrence(smach.container.Container):
                 self._states[label].request_preempt()
 
         # Wait for all states to terminate
-        while not smach.is_shutdown():
+        #while not smach.is_shutdown():
+        while True:
             if all([not t.isAlive() for t in self._threads.values()]):
                 break
 
