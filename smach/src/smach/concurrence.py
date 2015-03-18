@@ -242,10 +242,8 @@ class Concurrence(smach.container.Container):
                 self._states[label].request_preempt()
 
         # Wait for all states to terminate
-        #while not smach.is_shutdown():
-        while True:
-            if all([not t.isAlive() for t in self._threads.values()]):
-                break
+        [t.join() for t in self._threads.values()]
+
 
         # Check for user code exception
         if self._user_code_exception:
@@ -339,7 +337,7 @@ class Concurrence(smach.container.Container):
             raise smach.InvalidStateError(("Could not execute child state '%s': " % label)+traceback.format_exc())
 
         # Make sure the child returned an outcome
-        if self._child_outcomes[label] is None:
+        if not self._shutdown_requested and self._child_outcomes[label] is None:
             raise smach.InvalidStateError("Concurrent state '%s' returned no outcome on termination." % label)
         else:
             smach.loginfo("Concurrent state '%s' returned outcome '%s' on termination." % (label, self._child_outcomes[label]))
