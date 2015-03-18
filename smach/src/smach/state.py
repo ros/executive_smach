@@ -41,7 +41,8 @@ class State(object):
 
         # Declare preempt flag
         self._preempt_requested = False
-        smach.handle_shutdown(self.request_preempt)
+        self._shutdown_requested = False
+        smach.handle_shutdown(self.request_shutdown)
 
     ### Meat
     def execute(self, ud):
@@ -115,6 +116,11 @@ class State(object):
     def preempt_requested(self):
         """True if a preempt has been requested."""
         return self._preempt_requested
+    
+    def request_shutdown(self):
+        """Sets action on shutdown to request_preempt"""
+        self._shutdown_requested = True
+        self.request_preempt()
 
 class CBState(State):
     def __init__(self, cb, cb_args=[], cb_kwargs={}, outcomes=[], input_keys=[], output_keys=[], io_keys=[]):

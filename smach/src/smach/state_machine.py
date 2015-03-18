@@ -274,7 +274,7 @@ class StateMachine(smach.container.Container):
         transition_target = self._current_transitions[outcome]
 
         # Check if the transition target is a state in this state machine, or an outcome of this state machine
-        if transition_target in self._states:
+        if not self._shutdown_requested and transition_target in self._states:
             # Set the new state 
             self._set_current_state(transition_target)
 
@@ -295,7 +295,7 @@ class StateMachine(smach.container.Container):
                 # This is a container outcome that will fall through
                 transition_target = outcome
 
-            if transition_target in self.get_registered_outcomes():
+            if transition_target in self.get_registered_outcomes() or self._shutdown_requested:
                 # The transition target is an outcome of the state machine
                 self._set_current_state(None)
 
