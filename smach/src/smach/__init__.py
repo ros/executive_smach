@@ -46,6 +46,7 @@ from smach.user_data import UserData, Remapper
 from smach.container import Container
 
 from smach.util import\
+        handle_shutdown, set_shutdown_handler,\
         is_shutdown, set_shutdown_check,\
         has_smach_interface, cb_interface, CBInterface
 
