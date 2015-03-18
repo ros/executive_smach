@@ -244,12 +244,6 @@ class Concurrence(smach.container.Container):
 
         # Wait for all states to terminate
         [t.join() for t in self._threads.values()]
-##        while not smach.is_shutdown():
-##            if all([not t.isAlive() for t in self._threads.values()]):
-##                break
-##            self._done_cond.acquire()
-##            self._done_cond.wait(0.1)
-##            self._done_cond.release()
 
         # Check for user code exception
         if self._user_code_exception:
