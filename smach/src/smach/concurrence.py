@@ -244,7 +244,6 @@ class Concurrence(smach.container.Container):
         # Wait for all states to terminate
         [t.join() for t in self._threads.values()]
 
-
         # Check for user code exception
         if self._user_code_exception:
             self._user_code_exception = False

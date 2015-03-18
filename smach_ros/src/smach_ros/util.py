@@ -6,7 +6,7 @@ import threading
 from multiprocessing.pool import ThreadPool
 import smach
 
-__all__ = ['set_preempt_handler', 'start', 'get_outcome']
+__all__ = ['set_preempt_handler', 'start']
 
 # Signal handler
 def set_preempt_handler(sc):
