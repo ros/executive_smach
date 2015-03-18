@@ -5,7 +5,7 @@ import rospy
 import threading
 import smach
 
-__all__ = ['set_preempt_handler']
+__all__ = ['set_preempt_handler', 'start']
 
 # Signal handler
 def set_preempt_handler(sc):
@@ -29,3 +29,6 @@ def set_preempt_handler(sc):
     ### Add handler
     rospy.core.add_client_shutdown_hook(lambda: handler(sc))
 
+def start(sm):
+    t = threading.Thread(target = sm.execute)
+    t.start()
