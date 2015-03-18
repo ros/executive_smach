@@ -3,8 +3,15 @@ import smach
 import threading
 
 
-__all__ = ['is_shutdown','set_shutdown_cb',\
+__all__ = ['handle_shutdown', 'set_shutdown_handler',\
+        'is_shutdown','set_shutdown_cb',\
         'cb_interface','has_smach_interface','CBInterface']
+
+def handle_shutdown(cb):
+    return None
+
+def set_shutdown_handler(cb):
+    smach.handle_shutdown = cb
 
 def is_shutdown():
     return False

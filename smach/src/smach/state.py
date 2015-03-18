@@ -41,6 +41,7 @@ class State(object):
 
         # Declare preempt flag
         self._preempt_requested = False
+        smach.handle_shutdown(self.request_preempt)
 
     ### Meat
     def execute(self, ud):
@@ -138,7 +139,7 @@ class CBState(State):
         self._cb = cb
         self._cb_args = cb_args
         self._cb_kwargs = cb_kwargs
-
+        
         if smach.util.has_smach_interface(cb):
             self._cb_input_keys = cb.get_registered_input_keys()
             self._cb_output_keys = cb.get_registered_output_keys()

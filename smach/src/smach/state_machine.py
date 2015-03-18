@@ -378,6 +378,7 @@ class StateMachine(smach.container.Container):
             # Only propagate preempt if the current state is defined
             if self._current_state is not None:
                 self._preempt_current_state()
+                self.service_preempt()
 
     def _preempt_current_state(self):
         """Preempt the current state (might not be executing yet).
