@@ -3,9 +3,10 @@ import roslib; roslib.load_manifest('smach_ros')
 import rospy
 
 import threading
+from multiprocessing.pool import ThreadPool
 import smach
 
-__all__ = ['set_preempt_handler', 'start']
+__all__ = ['set_preempt_handler', 'start', 'get_outcome']
 
 # Signal handler
 def set_preempt_handler(sc):
@@ -30,5 +31,6 @@ def set_preempt_handler(sc):
     rospy.core.add_client_shutdown_hook(lambda: handler(sc))
 
 def start(sm):
-    t = threading.Thread(target = sm.execute)
-    t.start()
+    pool = ThreadPool(processes=1)
+    async_result = pool.apply_async(sm.execute)
+    return async_result
