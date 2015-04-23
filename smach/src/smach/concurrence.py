@@ -197,6 +197,14 @@ class Concurrence(smach.container.Container):
         """Overridden execute method.
         This starts all the threads.
         """
+
+        # Check for preempt before doing anything, as a prior state may have failed to honour preempt and thus it could be passed to us
+        if self.preempt_requested():
+            smach.loginfo("Concurrence serviced preempt before execution.")
+            self.service_preempt()
+            # is there anything else we can return under this condition?
+            return self._default_outcome
+
         # Clear the ready event
         self._ready_event.clear()
         
