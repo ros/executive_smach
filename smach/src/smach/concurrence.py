@@ -1,6 +1,7 @@
 import threading
 import traceback
 import copy
+import math
 from contextlib import contextmanager
 
 import smach
@@ -51,7 +52,8 @@ class Concurrence(smach.container.Container):
             output_keys = [],
             outcome_map = {},
             outcome_cb = None,
-            child_termination_cb = None
+            child_termination_cb = None,
+            termination_timeout = 0,
             ):
         """Constructor for smach Concurrent Split.
 
@@ -128,6 +130,11 @@ class Concurrence(smach.container.Container):
         B{NOTE: This callback should be a function ONLY of the outcomes of
         the child states. It should not access any other resources.} 
 
+        @type termination_timeout: number
+        @param termination_timeout: The number of seconds to wait for a child 
+        state to complete after a preemption request has been received. The 
+        default value of 0 indicates no timeout.
+
         """
         smach.container.Container.__init__(self, outcomes, input_keys, output_keys)
 
@@ -176,6 +183,8 @@ class Concurrence(smach.container.Container):
         self._user_code_exception = False
         self._done_cond = threading.Condition()
         self._ready_event =  threading.Event()
+
+        self._termination_timeout = termination_timeout
 
     ### Construction methods
     @staticmethod
@@ -251,12 +260,33 @@ class Concurrence(smach.container.Container):
                 self._states[label].request_preempt()
 
         # Wait for all states to terminate
-        while not smach.is_shutdown():
-            if all([not t.isAlive() for t in self._threads.values()]):
-                break
-            self._done_cond.acquire()
-            self._done_cond.wait(0.1)
-            self._done_cond.release()
+
+        # 
+        if self._termination_timeout > 0:
+            wait_secs = 0.1
+            loop_count = 0
+            loop_count_threshold = math.ceil(self._termination_timeout / wait_secs) 
+            while not smach.is_shutdown() and loop_count < loop_count_threshold:
+                if all([not t.isAlive() for t in self._threads.values()]):
+                    break
+                self._done_cond.acquire()
+                self._done_cond.wait(wait_secs)
+                self._done_cond.release()
+                loop_count += 1
+
+            if loop_count >= loop_count_threshold:
+                for l,t in self._threads.iteritems():
+                    if t.isAlive():
+                        smach.logwarn("State '%s' in concurrence did not terminate within timeout." % l) 
+
+        else:
+
+            while not smach.is_shutdown():
+                if all([not t.isAlive() for t in self._threads.values()]):
+                    break
+                self._done_cond.acquire()
+                self._done_cond.wait(0.1)
+                self._done_cond.release()
 
         # Check for user code exception
         if self._user_code_exception:
