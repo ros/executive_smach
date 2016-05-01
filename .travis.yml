@@ -48,37 +48,19 @@ cache:
 matrix:
   include:
     - dist: precise
+      os: linux
       python: 2.7
       language: python
-      python: "2.7"
-      os: linux
       env:
         - ROS_DISTRO=hydro
         - PYTHON=/usr/bin/python2.7
-    - dist: precise
-      python: 3.4
-      language: python
-      python: "3.4"
-      os: linux
-      env:
-        - ROS_DISTRO=hydro
-        - PYTHON=/usr/bin/python3.4
     - dist: trusty
+      os: linux
       python: 2.7
       language: python
-      python: "2.7"
-      os: linux
       env:
         - ROS_DISTRO=indigo
         - PYTHON=/usr/bin/python2.7
-    - dist: trusty
-      python: 3.4
-      language: python
-      python: "3.4"
-      os: linux
-      env:
-        - ROS_DISTRO=indigo
-        - PYTHON=/usr/bin/python3.4
 
 # Configuration variables. All variables are global now, but this can be used to
 # trigger a build matrix for different ROS distributions if desired.
