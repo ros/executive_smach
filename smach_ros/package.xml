@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>smach_ros</name>
   <version>2.0.0</version>
   <description>
@@ -22,15 +22,15 @@
 
   <build_depend>rostest</build_depend>
 
-  <run_depend>rospy</run_depend>
-  <run_depend>rostopic</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>std_srvs</run_depend>
-  <run_depend>actionlib</run_depend>
-  <run_depend>actionlib_msgs</run_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>rostopic</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
+  <exec_depend>actionlib</exec_depend>
+  <exec_depend>actionlib_msgs</exec_depend>
 
-  <run_depend>smach</run_depend>
-  <run_depend>smach_msgs</run_depend>
+  <exec_depend>smach</exec_depend>
+  <exec_depend>smach_msgs</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
