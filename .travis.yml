@@ -52,12 +52,14 @@ matrix:
       os: linux
       env:
         - ROS_DISTRO=hydro
-        - PYTHON=/usr/bin/python2.7
     - dist: trusty
       os: linux
       env:
         - ROS_DISTRO=indigo
-        - PYTHON=/usr/bin/python2.7
+    - dist: trusty
+      os: linux
+      env:
+        - ROS_DISTRO=jade
 
 # Configuration variables. All variables are global now, but this can be used to
 # trigger a build matrix for different ROS distributions if desired.
@@ -115,7 +117,7 @@ before_script:
 script:
   - cd ~/catkin_ws
   - catkin_make $( [ -f $CATKIN_OPTIONS ] && cat $CATKIN_OPTIONS )
-  - source devel/setup.bash
+  - source devel/setup.bash # NOTE: This is required on Travis for Trusty
   # Testing: Use both run_tests (to see the output) and test (to error out).
   - catkin_make run_tests  # This always returns 0, but looks pretty.
   - catkin_make test  # This will return non-zero if a test fails.
