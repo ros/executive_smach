@@ -218,6 +218,22 @@ class TestActionlib(unittest.TestCase):
             rospy.sleep(0.5)
         assert ac.get_state() == GoalStatus.PREEMPTED
 
+    def test_action_client_timeout(self):
+        """Test simple action state server timeout"""
+        sq = Sequence(['succeeded','aborted','preempted'],'succeeded')
+
+        sq.userdata['g1'] = g1
+
+        with sq:
+            # Test single goal policy
+            Sequence.add(
+                'GOAL_STATIC',
+                SimpleActionState(
+                    "reference_action_not_available",TestAction,
+                    goal = g1,
+                    server_wait_timeout = rospy.Duration(1.0)))
+
+        sq_outcome = sq.execute()
 
 
 def main():
