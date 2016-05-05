@@ -37,10 +37,6 @@ class SimpleActionState(State):
             goal_cb = None,
             goal_cb_args = [],
             goal_cb_kwargs = {},
-            # Feedback
-            feedback_cb = None,
-            feedback_cb_args = [],
-            feedback_cb_kwargs = {},
             # Result modes
             result_key = None,
             result_slots = [],
@@ -54,7 +50,11 @@ class SimpleActionState(State):
             # Timeouts
             exec_timeout = None,
             preempt_timeout = rospy.Duration(60.0),
-            server_wait_timeout = rospy.Duration(60.0)
+            server_wait_timeout = rospy.Duration(60.0),
+            # Feedback
+            feedback_cb = None,
+            feedback_cb_args = [],
+            feedback_cb_kwargs = {}
             ):
         """Constructor for SimpleActionState action client wrapper.
         
