@@ -225,8 +225,9 @@ class SimpleActionState(State):
         """Internal method for waiting for the action server
         This is run in a separate thread and allows construction of this state
         to not block the construction of other states.
-        """
-        while self._status == SimpleActionState.WAITING_FOR_SERVER and not rospy.is_shutdown():
+        """        
+        timeout_time = rospy.get_rostime() + self._server_wait_timeout
+        while self._status == SimpleActionState.WAITING_FOR_SERVER and not rospy.is_shutdown() and not rospy.get_rostime() >= timeout_time:
             try:
                 if self._action_client.wait_for_server(rospy.Duration(1.0)):#self._server_wait_timeout):
                     self._status = SimpleActionState.INACTIVE
