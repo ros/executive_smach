@@ -2,6 +2,11 @@
 Changelog for package smach
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [maintenance] Update maintainer. switching to package.xml format 2
+* Contributors: Isaac I.Y. Saito
+
 2.0.0 (2014-04-17)
 ------------------
 * Merging changes, resolving conflicts, from strands-project (@cburbridge)
