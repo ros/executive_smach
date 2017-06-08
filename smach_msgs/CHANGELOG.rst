@@ -2,8 +2,8 @@
 Changelog for package smach_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.1 (2017-06-08)
+------------------
 * [maintenance] Update maintainer. switching to package.xml format 2
 * Contributors: Isaac I.Y. Saito, Jonathan Bohren
 
