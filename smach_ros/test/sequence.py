@@ -53,6 +53,31 @@ class TestSequence(unittest.TestCase):
 
         assert outcome == 'done'
 
+    def test_exception(self):
+        class DoneState(State):
+            def __init__(self):
+                State.__init__(self,outcomes=['done'])
+            def execute(self,ud=None):
+                return 'done'
+
+        class ErrorState(State):
+            """State falls with exception"""
+            def __init__(self):
+                State.__init__(self, ['done'])
+            def execute(self, ud):
+                raise Exception('Test exception')
+
+        sq = Sequence(['done'], connector_outcome='done')
+        with sq:
+            Sequence.add('OK', DoneState())
+            Sequence.add('ERROR', ErrorState())
+            Sequence.add('IGNORED', Setter())
+
+        with self.assertRaises(InvalidUserCodeError):
+            sq.execute()
+
+        assert sq.is_running() == False
+        assert 'a' not in sq.userdata  # test IGNORED state wasn't called
 
 def main():
     rospy.init_node('sequence_test',log_level=rospy.DEBUG)
