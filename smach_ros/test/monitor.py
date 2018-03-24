@@ -4,6 +4,7 @@ import roslib; roslib.load_manifest('smach_ros')
 import rospy
 import rostest
 
+import threading
 import unittest
 
 from actionlib import *
@@ -16,12 +17,13 @@ from smach_ros import *
 
 from smach_msgs.msg import *
 
+
 def pinger():
     pub = rospy.Publisher('/ping', Empty)
     msg = Empty()
     r = rospy.Rate(10.0)
     while not rospy.is_shutdown():
-        print "publish!"
+        print("publish!")
         pub.publish(msg)
         r.sleep()
 
@@ -32,7 +34,8 @@ def cond_cb(ud, msg):
     ud.a = ud.b
     return False
 
-### Test harness
+
+# Test harness
 class TestStateMachine(unittest.TestCase):
     def test_userdata(self):
         """Test serial manipulation of userdata."""
@@ -43,8 +46,8 @@ class TestStateMachine(unittest.TestCase):
         init_ud = UserData()
         init_ud.b = 'A'
 
-        sm = StateMachine(['valid','invalid','preempted'])
-        sm.set_initial_state(['MON'],userdata=init_ud)
+        sm = StateMachine(['valid', 'invalid', 'preempted'])
+        sm.set_initial_state(['MON'], userdata=init_ud)
 
         assert 'b' in sm.userdata
         assert sm.userdata.b == 'A'
@@ -64,9 +67,9 @@ class TestStateMachine(unittest.TestCase):
 
 
 def main():
-    rospy.init_node('monitor_test',log_level=rospy.DEBUG)
+    rospy.init_node('monitor_test', log_level=rospy.DEBUG)
     rostest.rosrun('smach', 'monitor_test', TestStateMachine)
 
-if __name__=="__main__":
-    main();
 
+if __name__ == "__main__":
+    main()
