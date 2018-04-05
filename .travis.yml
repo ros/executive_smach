@@ -19,10 +19,15 @@ env:
     - ROS_DISTRO="jade" PRERELEASE=true
     - ROS_DISTRO="kinetic" ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu USE_DEB=true
     - ROS_DISTRO="kinetic" ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu USE_DEB=true VERBOSE_OUTPUT='true'
+                           ABICHECK_URL='github:ros/executive_smach/#indigo-devel'
     - ROS_DISTRO="kinetic" PRERELEASE=true
     - ROS_DISTRO="lunar" ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu USE_DEB=true
     - ROS_DISTRO="lunar" ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu USE_DEB=true VERBOSE_OUTPUT='true'
     - ROS_DISTRO="lunar" PRERELEASE=true
+    - ROS_DISTRO="melodic" ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu USE_DEB=true
+    - ROS_DISTRO="melodic" ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu USE_DEB=true VERBOSE_OUTPUT='true'
+                           ABICHECK_URL='github:ros/executive_smach/#indigo-devel'
+    - ROS_DISTRO="melodic" PRERELEASE=true
 matrix:
   allow_failures:
     - env: ROS_DISTRO="indigo" PRERELEASE=true
@@ -31,6 +36,7 @@ matrix:
     - env: ROS_DISTRO="jade" PRERELEASE=true
     - env: ROS_DISTRO="kinetic" PRERELEASE=true
     - env: ROS_DISTRO="lunar" PRERELEASE=true
+    - env: ROS_DISTRO="melodic" PRERELEASE=true
 install:
   - git clone https://github.com/ros-industrial/industrial_ci.git .ci_config
 
