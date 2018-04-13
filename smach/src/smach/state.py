@@ -17,18 +17,18 @@ class State(object):
     """
     def __init__(self, outcomes=[], input_keys=[], output_keys=[], io_keys=[]):
         """State constructor
-        @type outcomes: array of strings
+        @type outcomes: list of str
         @param outcomes: Custom outcomes for this state.
 
-        @type input_keys: array of strings
+        @type input_keys: list of str
         @param input_keys: The userdata keys from which this state might read
         at runtime. 
 
-        @type output_keys: array of strings
+        @type output_keys: list of str
         @param output_keys: The userdata keys to which this state might write
         at runtime.
 
-        @type io_keys: array of strings
+        @type io_keys: list of str
         @param io_keys: The userdata keys to which this state might write or
         from which it might read at runtime.
         """
@@ -59,7 +59,7 @@ class State(object):
 
     def get_registered_outcomes(self):
         """Get a list of registered outcomes.
-        @rtype: tuple of string
+        @rtype: tuple of str
         @return: Tuple of registered outcome strings.
         """
         return tuple(self._outcomes)
@@ -67,7 +67,7 @@ class State(object):
     ### Userdata API
     def register_io_keys(self, keys):
         """Add keys to the set of keys from which this state may read and write.
-        @type keys: list of strings
+        @type keys: list of str
         @param keys: List of keys which may be read from and written to when this
         state is active.
         """
@@ -76,7 +76,7 @@ class State(object):
 
     def register_input_keys(self, keys):
         """Add keys to the set of keys from which this state may read.
-        @type keys: list of strings
+        @type keys: list of str
         @param keys: List of keys which may be read from when this state is
         active.
         """
@@ -88,7 +88,7 @@ class State(object):
 
     def register_output_keys(self, keys):
         """Add keys to the set of keys to which this state may write.
-        @type keys: list of strings
+        @type keys: list of str
         @param keys: List of keys which may be written to when this state is
         active.
         """
@@ -119,18 +119,18 @@ class CBState(State):
     def __init__(self, cb, cb_args=[], cb_kwargs={}, outcomes=[], input_keys=[], output_keys=[], io_keys=[]):
         """Create s state from a single function.
 
-        @type outcomes: array of strings
+        @type outcomes: list of str
         @param outcomes: Custom outcomes for this state.
 
-        @type input_keys: array of strings
+        @type input_keys: list of str
         @param input_keys: The userdata keys from which this state might read
         at runtime. 
 
-        @type output_keys: array of strings
+        @type output_keys: list of str
         @param output_keys: The userdata keys to which this state might write
         at runtime.
 
-        @type io_keys: array of strings
+        @type io_keys: list of str
         @param io_keys: The userdata keys to which this state might write or
         from which it might read at runtime.
         """
