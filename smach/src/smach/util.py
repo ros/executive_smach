@@ -35,8 +35,8 @@ class CBInterface(object):
 
     Some SMACH states can be extended with the use of user callbacks. Since
     the SMACH interface and SMACH userdata are strictly controlled, the ways in
-    which these callbacks interact with SMACH must be delcared. This decorator
-    allows this information to be attached to a given callback function.
+    which these callbacks interact with SMACH must be declared. This decorator
+    allows this information to be attached to a given callback function or method.
 
     If a callback adds a potential outcome to a state, suppose 'critical_failure',
     then one could write this when defining the callback:
@@ -58,7 +58,7 @@ class CBInterface(object):
 
     """
     def __init__(self, cb, outcomes=None, input_keys=None, output_keys=None,
-                 io_keys=None):
+                 io_keys=None, _instance=None):
         outcomes = outcomes or []
         input_keys = input_keys or []
         output_keys = output_keys or []
@@ -90,9 +90,24 @@ class CBInterface(object):
         self._outcomes = outcomes
 
         self._cb = cb
+        self._instance = _instance
+
+    def __get__(self, obj, type=None):
+        """
+        Binds this interface to the given object. This is done, if the callback
+        is a method and the callback needs the 'self' parameter
+        """
+        if obj is not None:
+            return CBInterface(self._cb, outcomes=self._outcomes, input_keys=self._input_keys,
+                               output_keys=self._output_keys, _instance=obj)
+        else:
+            return self
 
     def __call__(self, *args, **kwargs):
-        return self._cb(*args, **kwargs)
+        if self._instance is not None:
+            return self._cb(self._instance, *args, **kwargs)
+        else:
+            return self._cb(*args, **kwargs)
 
     # SMACH Interface API
     def get_registered_input_keys(self):
