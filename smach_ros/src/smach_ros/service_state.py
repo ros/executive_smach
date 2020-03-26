@@ -115,7 +115,7 @@ class ServiceState(RosState):
 
         # Make sure we're connected to the service
         try:
-            while self._proxy is None:
+            while not self._proxy.service_is_ready():
                 if self.preempt_requested():
                     self.node.get_logger().info("Preempting while waiting for service '%s'." % self._service_name)
                     self.service_preempt()
