@@ -26,36 +26,39 @@
 
 # ROS imports
 import rclpy
+import rclpy.logging
 
 # SMACH
 import smach
 
 __all__ = ['set_preempt_handler',
-        'ActionServerWrapper',
+        'RosState',
+        #'ActionServerWrapper',
         'IntrospectionClient','IntrospectionServer',
-        'SimpleActionState',
-        'ServiceState',
-        'MonitorState',
+        #'SimpleActionState',
+        #'ServiceState',
+        #'MonitorState',
         'ConditionState']
 
 # Setup smach-ros interface
 smach.set_loggers(
-        rclpy.get_logger(__name__).info,
-        rclpy.get_logger(__name__).warn,
-        rclpy.get_logger(__name__).debug,
-        rclpy.get_logger(__name__).error)
+        rclpy.logging.get_logger(__name__).info,
+        rclpy.logging.get_logger(__name__).warn,
+        rclpy.logging.get_logger(__name__).debug,
+        rclpy.logging.get_logger(__name__).error)
 
-smach.set_shutdown_check(rclpy.ok)
+smach.set_shutdown_check(lambda: not rclpy.ok())
 
 ### Core classes
-from util import set_preempt_handler
+from .util import set_preempt_handler
 
 ### Top-level Containers / Wrappers
-from action_server_wrapper import ActionServerWrapper
-from introspection import IntrospectionClient, IntrospectionServer
+#from .action_server_wrapper import ActionServerWrapper
+from .introspection import IntrospectionClient, IntrospectionServer
 
 ### State Classes
-from simple_action_state import SimpleActionState
-from service_state import ServiceState
-from monitor_state import MonitorState
-from condition_state import ConditionState
+from .ros_state import RosState
+#from .simple_action_state import SimpleActionState
+#from .service_state import ServiceState
+#from .monitor_state import MonitorState
+from .condition_state import ConditionState
