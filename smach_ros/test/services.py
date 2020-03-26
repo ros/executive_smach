@@ -1,28 +1,41 @@
-#!/usr/bin/env python
-
-import roslib; roslib.load_manifest('smach_ros')
-import rospy
-import rostest
+#!/usr/bin/env python3
+import rclpy
+from rclpy.executors import SingleThreadedExecutor, MultiThreadedExecutor
 
 import unittest
+import threading
 
-import std_srvs.srv as std_srvs
+from std_srvs.srv import Empty
 
 from smach import *
 from smach_ros import *
-
 from smach_msgs.msg import *
 
-def empty_server(req):
-    rospy.loginfo("Service called!")
-    return std_srvs.EmptyResponse()
+def server():
+    node = rclpy.create_node("test_server")
+    executor = SingleThreadedExecutor()
+
+    def empty_server(req, res):
+        node.get_logger().info("Service called!")
+        res = Empty.Response()
+        return res
+
+    service = node.create_service(
+            Empty,
+            '/empty',
+            empty_server)
+    rclpy.spin(node, executor=executor)
 
 ### Test harness
 class TestServices(unittest.TestCase):
     def test_service_cb(self):
         """Test calling a service with a callback."""
 
-        srv = rospy.Service('/empty', std_srvs.Empty, empty_server)
+        node = rclpy.create_node('service_test')
+        node.get_logger().set_level(rclpy.logging.LoggingSeverity.DEBUG)
+        executor = SingleThreadedExecutor()
+        def spin():
+            rclpy.spin(node, executor=executor)
 
         sm = StateMachine(['succeeded','aborted','preempted','done'])
         with sm:
@@ -31,22 +44,30 @@ class TestServices(unittest.TestCase):
                 return 'succeeded'
 
             StateMachine.add('FOO',
-                    ServiceState('/empty',
-                        std_srvs.Empty,
-                        response_cb=foo_response_cb,
-                        output_keys=['foo_var_out']),
+                ServiceState(node,
+                    '/empty',
+                    Empty,
+                    response_cb=foo_response_cb,
+                    output_keys=['foo_var_out']),
                     remapping={'foo_var_out':'sm_var'},
                     transitions={'succeeded':'done'})
 
+        spinner = threading.Thread(target=spin)
+        spinner.start()
         outcome = sm.execute()
 
-        rospy.logwarn("OUTCOME: "+outcome)
+        node.get_logger().warn("OUTCOME: "+outcome)
 
         assert outcome == 'done'
 
+        node.destroy_node()
+
 def main():
-    rospy.init_node('services_test',log_level=rospy.DEBUG)
-    rostest.rosrun('smach', 'services_test', TestServices)
+    rclpy.init()
+    server_thread = threading.Thread(target=server)
+    server_thread.start()
+    unittest.main()
+    rclpy.shutdown()
 
 if __name__=="__main__":
     main();
