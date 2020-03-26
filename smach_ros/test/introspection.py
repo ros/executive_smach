@@ -35,26 +35,15 @@ class Getter(RosState):
 
 ### Test harness
 class TestIntrospection(unittest.TestCase):
-    def __init__(self, methodName):
-        unittest.TestCase.__init__(self, methodName)
-        self._executor = SingleThreadedExecutor()
-        self._spinner = threading.Thread(target=self._executor.spin)
-        self._spinner.start()
-
-    def __del__(self):
-        self._executor.shutdown()
-        self._spinner.join()
-
-    def setUp(self):
-        self.node = rclpy.create_node("sm_node")
-        self.node.get_logger().set_level(rclpy.logging.LoggingSeverity.DEBUG)
-        self._executor.add_node(self.node)
-
-    def tearDown(self):
-        self.node.destroy_node()
 
     def test_introspection(self):
         """Test introspection system."""
+        node = rclpy.create_node("sm_node")
+        node.get_logger().set_level(rclpy.logging.LoggingSeverity.DEBUG)
+        executor = SingleThreadedExecutor()
+        def spin():
+            rclpy.spin(node, executor=executor)
+
         # Construct state machine
         sm = StateMachine(['done'])
         sm2 = StateMachine(['done'])
@@ -62,14 +51,14 @@ class TestIntrospection(unittest.TestCase):
 
         with sm:
             # Note: the following "Getter" state should fail
-            StateMachine.add('GETTER1', Getter(self.node), {})
+            StateMachine.add('GETTER1', Getter(node), {})
             StateMachine.add('SM2', sm2, {'done':'SM3'})
             with sm2:
-                StateMachine.add("SETTER", Setter(self.node), {})
+                StateMachine.add("SETTER", Setter(node), {})
             StateMachine.add('SM3', sm3, {'done':'done'})
             with sm3:
-                StateMachine.add("SETTER", Setter(self.node), {})
-            StateMachine.add('GETTER2', Getter(self.node), {'done':'SM2'})
+                StateMachine.add("SETTER", Setter(node), {})
+            StateMachine.add('GETTER2', Getter(node), {'done':'SM2'})
 
         sm.set_initial_state(['GETTER1'])
         sm2.set_initial_state(['SETTER'])
@@ -104,16 +93,22 @@ class TestIntrospection(unittest.TestCase):
 
         assert init_set
 
+        spinner = threading.Thread(target=spin)
+        spinner.start()
+
         outcome = sm.execute()
 
         assert outcome == 'done'
 
         intro_server.stop()
-        self.node.get_logger().info("Server stopped")
+        node.get_logger().info("Server stopped")
         intro_client.destroy_node()
-        self.node.get_logger().info("Client destroyed")
+        node.get_logger().info("Client destroyed")
         intro_server.destroy_node()
-        self.node.get_logger().info("Server destroyed")
+        node.get_logger().info("Server destroyed")
+        #executor.shutdown()
+        #spinner.join()
+        node.destroy_node()
 
 def main():
     rclpy.init()
