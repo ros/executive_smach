@@ -35,7 +35,7 @@ __all__ = ['set_preempt_handler',
         'RosState',
         #'ActionServerWrapper', ### Wraps a SMACH SM into an Action server
         'IntrospectionClient','IntrospectionServer',
-        #'SimpleActionState',
+        'SimpleActionState',
         'ServiceState',
         'MonitorState',
         'ConditionState']
@@ -58,7 +58,7 @@ from .introspection import IntrospectionClient, IntrospectionServer
 
 ### State Classes
 from .ros_state import RosState
-#from .simple_action_state import SimpleActionState
+from .simple_action_state import SimpleActionState
 from .service_state import ServiceState
 from .monitor_state import MonitorState
 from .condition_state import ConditionState
