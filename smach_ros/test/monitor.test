@@ -1,3 +1,0 @@
-<launch>
-  <test test-name="monitor" pkg="smach_ros" time-limit="60.0" type="monitor.py" />
-</launch>

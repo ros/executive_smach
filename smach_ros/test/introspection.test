@@ -1,3 +1,0 @@
-<launch>
-  <test test-name="introspection" pkg="smach_ros" time-limit="60.0" type="introspection.py" />
-</launch>
