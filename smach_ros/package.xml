@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>smach_ros</name>
   <version>2.0.1</version>
   <description>
@@ -17,23 +18,17 @@
   <license>BSD</license>
 
   <author>Jonathan Bohren</author>
+  <author>Charles Lesire</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
-
-  <build_depend>rostest</build_depend>
-
-  <exec_depend>rospy</exec_depend>
-  <exec_depend>rostopic</exec_depend>
+  <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>std_srvs</exec_depend>
-  <exec_depend>actionlib</exec_depend>
-  <exec_depend>actionlib_msgs</exec_depend>
-
+  
   <exec_depend>smach</exec_depend>
   <exec_depend>smach_msgs</exec_depend>
 
-  <!-- The export tag contains other, unspecified, tags -->
   <export>
-    <rosdoc config="rosdoc.yaml"/>    
+    <build_type>ament_python</build_type>
+    <rosdoc config="rosdoc.yaml"/>
   </export>
 </package>

@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<package>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>smach</name>
   <version>2.0.1</version>
   <description>
@@ -14,10 +15,10 @@
   <license>BSD</license>
 
   <author>Jonathan Bohren</author>
-
-  <buildtool_depend>catkin</buildtool_depend>
+  <author>Charles Lesire</author>
 
   <export>
-    <rosdoc config="rosdoc.yaml"/>    
+    <build_type>ament_python</build_type>
+    <rosdoc config="rosdoc.yaml"/>
   </export>
 </package>

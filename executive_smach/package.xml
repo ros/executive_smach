@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>executive_smach</name>
   <version>2.0.1</version>
   <description>
@@ -12,13 +13,15 @@
   <url>http://ros.org/wiki/smach</url>
   <author>Jonathan Bohren</author>
   <author>Wim Meeussen</author>
+  <author>Charles Lesire</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
   <exec_depend>smach</exec_depend>
-  <exec_depend>smach_ros</exec_depend>
   <exec_depend>smach_msgs</exec_depend>
+  <exec_depend>smach_ros</exec_depend>
 
   <export>
-    <metapackage/>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>
