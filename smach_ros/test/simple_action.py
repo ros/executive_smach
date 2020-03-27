@@ -4,6 +4,7 @@ from rclpy.executors import SingleThreadedExecutor, MultiThreadedExecutor
 
 import unittest
 import threading
+import traceback
 
 from action_tutorials_interfaces.action import Fibonacci
 
@@ -26,8 +27,10 @@ class AssertUDState(State):
     def execute(self, ud):
         for key in self._keys:
             if key not in ud:
-                rospy.logerr("Key '%s' not in userdata. Available keys are: %s" % (key, ud.keys()))
+                print("Key '%s' not in userdata. Available keys are: %s" % (key, ud.keys()))
                 return 'aborted'
+        for key in self._keys:
+            print("result "+key+": "+str(ud[key]))
         return 'succeeded'
 
 
@@ -35,43 +38,49 @@ class AssertUDState(State):
 class TestActionlib(unittest.TestCase):
     def test_action_client(self):
         """Test simple action states"""
+        node = rclpy.create_node('simple_action_test')
+        node.get_logger().set_level(rclpy.logging.LoggingSeverity.DEBUG)
+        executor = SingleThreadedExecutor()
+        def spin():
+            rclpy.spin(node, executor=executor)
+
         sq = Sequence(['succeeded', 'aborted', 'preempted', 'foobar'], 'succeeded')
 
         sq.userdata['g1'] = g1
         sq.userdata['g2'] = g2
-        sq.userdata['goal'] = 1
+        sq.userdata['order'] = 1
         sq.userdata['goal_alias'] = 1
 
         with sq:
             # Test single goal policy
             Sequence.add('GOAL_STATIC',
-                    SimpleActionState(
-                        "reference_action", TestAction, goal=g1))
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci, goal=g1))
             Sequence.add('GOAL_KEY',
-                    SimpleActionState(
-                        "reference_action", TestAction, goal_key='g1'))
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci, goal_key='g1'))
             Sequence.add('GOAL_SLOTS',
-                    SimpleActionState(
-                        "reference_action", TestAction, goal_slots=['goal']))
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci, goal_slots=['order']))
             Sequence.add('GOAL_SLOTS_REMAP',
-                    SimpleActionState(
-                        "reference_action", TestAction, goal_slots=['goal']),
-                    remapping={'goal':'goal_alias'})
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci, goal_slots=['order']),
+                    remapping={'order':'goal_alias'})
 
             # Test goal callback
             def goal_cb_0(ud, default_goal):
-                return TestGoal(1)
+                return Fibonacci.Goal(order=1)
             Sequence.add('GOAL_CB',
-                    SimpleActionState(
-                        "reference_action", TestAction,
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci,
                         goal_cb=goal_cb_0))
             Sequence.add('GOAL_CB_LAMBDA',
-                    SimpleActionState(
-                        "reference_action", TestAction,
-                        goal_cb=lambda ud, goal: TestGoal(1)))
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci,
+                        goal_cb=lambda ud, goal: Fibonacci.Goal(order=1)))
             Sequence.add('GOAL_CB_UD',
-                    SimpleActionState(
-                        "reference_action", TestAction,
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci,
                         goal_cb=lambda ud, goal: ud.g1,
                         input_keys=['g1']))
 
@@ -79,51 +88,51 @@ class TestActionlib(unittest.TestCase):
             def goal_cb_1(ud, default_goal):
                 return ud.g1
             Sequence.add('GOAL_CB_UD_DECORATOR',
-                    SimpleActionState(
-                        "reference_action", TestAction,
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci,
                         goal_cb=goal_cb_1))
             Sequence.add('GOAL_CB_ARGS',
-                    SimpleActionState(
-                        "reference_action", TestAction,
-                        goal_cb=lambda ud, goal, g: TestGoal(g),
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci,
+                        goal_cb=lambda ud, goal, g: Fibonacci.Goal(order=g),
                         goal_cb_args=[1]))
             Sequence.add('GOAL_CB_KWARGS',
-                    SimpleActionState(
-                        "reference_action", TestAction,
-                        goal_cb=lambda ud, goal, gg: TestGoal(gg),
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci,
+                        goal_cb=lambda ud, goal, gg: Fibonacci.Goal(order=gg),
                         goal_cb_kwargs={'gg':1}))
             Sequence.add('GOAL_CB_ARGS_KWARGS',
-                    SimpleActionState(
-                        "reference_action", TestAction,
-                        goal_cb=lambda ud, goal, g, gg: TestGoal(g - gg),
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci,
+                        goal_cb=lambda ud, goal, g, gg: Fibonacci.Goal(order=(g - gg)),
                         goal_cb_args=[2],
                         goal_cb_kwargs={'gg':1}))
 
             # Test overriding goal policies
             Sequence.add('GOAL_STATIC_SLOTS',
-                    SimpleActionState(
-                        "reference_action", TestAction,
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci,
                         goal=g2,
-                        goal_slots=['goal']))
+                        goal_slots=['order']))
             Sequence.add('GOAL_STATIC_CB',
-                    SimpleActionState(
-                        "reference_action", TestAction,
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci,
                         goal=g2,
                         goal_cb=CBInterface(
-                            lambda ud, goal: setattr(goal, 'goal', 1),
+                            lambda ud, goal: setattr(goal, 'order', 1),
                             output_keys=['goal'])))
 
             # Test result policies
             Sequence.add('RESULT_KEY',
-                    SimpleActionState(
-                        "reference_action", TestAction,
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci,
                         goal=g1,
                         result_key='res_key'))
             Sequence.add('RESULT_KEY_CHECK', AssertUDState(['res_key']))
 
             Sequence.add('RESULT_CB',
-                    SimpleActionState(
-                        "reference_action", TestAction,
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci,
                         goal=g1,
                         result_cb=CBInterface(
                             lambda ud, res_stat, res: setattr(ud, 'res_cb', res),
@@ -131,52 +140,37 @@ class TestActionlib(unittest.TestCase):
             Sequence.add('RESULT_CB_CHECK', AssertUDState(['res_cb']))
 
             Sequence.add('RESULT_SLOTS',
-                    SimpleActionState(
-                        "reference_action", TestAction,
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci,
                         goal=g1,
-                        result_slots=['result']))
-            Sequence.add('RESULT_SLOTS_CHECK', AssertUDState(['result']))
+                        result_slots=['sequence']))
+            Sequence.add('RESULT_SLOTS_CHECK', AssertUDState(['sequence']))
 
             Sequence.add('RESULT_SLOTS_REMAP',
-                    SimpleActionState(
-                        "reference_action", TestAction,
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci,
                         goal=g1,
-                        result_slots=['result']),
-                    remapping={'result': 'res_alias'})
+                        result_slots=['sequence']),
+                    remapping={'sequence': 'res_alias'})
             Sequence.add('RESULT_SLOTS_MAP_CHECK', AssertUDState(['res_alias']))
 
             Sequence.add('RESULT_CB_OUTCOME',
-                    SimpleActionState(
-                        "reference_action", TestAction,
+                    SimpleActionState(node,
+                        "fibonacci", Fibonacci,
                         goal=g1,
                         result_cb=CBInterface(
                             lambda ud, res_stat, res: 'foobar',
                             outcomes=['foobar'])))
 
+        spinner = threading.Thread(target=spin)
+        spinner.start()
         sq_outcome = sq.execute()
         assert sq_outcome == 'foobar'
 
-    def test_action_client_timeout(self):
-        """Test simple action state server timeout"""
-        sq = Sequence(['succeeded', 'aborted', 'preempted'], 'succeeded')
-
-        sq.userdata['g1'] = g1
-
-        with sq:
-            # Test single goal policy
-            Sequence.add(
-                'GOAL_STATIC',
-                SimpleActionState(
-                    "reference_action_not_available", TestAction,
-                    goal=g1,
-                    server_wait_timeout=rospy.Duration(1.0)))
-
-        sq_outcome = sq.execute()
-
-
 def main():
-    rospy.init_node('smach_actionlib', log_level=rospy.DEBUG)
-    rostest.rosrun('smach', 'smach_actionlib', TestActionlib)
+    rclpy.init()
+    unittest.main()
+    rclpy.shutdown()
 
 if __name__ == "__main__":
     main();

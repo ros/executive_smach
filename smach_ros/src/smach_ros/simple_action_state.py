@@ -1,8 +1,10 @@
 import rclpy
 import rclpy.time
 import rclpy.action
+from rclpy.action.client import GoalStatus
 
 import threading
+import traceback
 
 import smach
 from .ros_state import RosState
@@ -97,17 +99,17 @@ class SimpleActionState(RosState):
             - result status (C{actionlib.GoalStatus})
             - result (actionlib result msg)
 
-        @type exec_timeout: C{rospy.Duration}
+        @type exec_timeout: C{rclpy.time.Duration}
         @param exec_timeout: This is the timeout used for sending a preempt message
         to the delegate action. This is C{None} by default, which implies no
         timeout.
 
-        @type preempt_timeout: C{rospy.Duration}
+        @type preempt_timeout: C{rclpy.time.Duration}
         @param preempt_timeout: This is the timeout used for aborting after a
         preempt has been sent to the action and no result has been received. This
         timeout begins counting after a preempt message has been sent.
 
-        @type server_wait_timeout: C{rospy.Duration}
+        @type server_wait_timeout: C{rclpy.time.Duration}
         @param server_wait_timeout: This is the timeout used for aborting while
         waiting for an action server to become active.
         """
@@ -129,7 +131,7 @@ class SimpleActionState(RosState):
         # Set goal generation policy
         if goal and hasattr(goal, '__call__'):
             raise smach.InvalidStateError("Goal object given to SimpleActionState that IS a function object")
-        sl = action_spec.Goal.__slots__
+        sl = action_spec.Goal.get_fields_and_field_types().keys()
         if not all([s in sl for s in goal_slots]):
             raise smach.InvalidStateError("Goal slots specified are not valid slots. Available slots: %s; specified slots: %s" % (sl, goal_slots))
         if goal_cb and not hasattr(goal_cb, '__call__'):
@@ -167,7 +169,7 @@ class SimpleActionState(RosState):
         # Set result processing policy
         if result_cb and not hasattr(result_cb, '__call__'):
             raise smach.InvalidStateError("Result callback object given to SimpleActionState that IS NOT a function object")
-        if not all([s in action_spec().action_result.result.__slots__ for s in result_slots]):
+        if not all([s in action_spec.Result.get_fields_and_field_types().keys() for s in result_slots]):
             raise smach.InvalidStateError("Result slots specified are not valid slots.")
 
         # Result callback
@@ -247,7 +249,7 @@ class SimpleActionState(RosState):
 
         # Check for preemption before executing
         if self.preempt_requested():
-            rospy.loginfo("Preempting %s before sending goal." % self._action_name)
+            self.node.get_logger().info("Preempting %s before sending goal." % self._action_name)
             self.service_preempt()
             return 'preempted'
 
@@ -351,9 +353,9 @@ class SimpleActionState(RosState):
         # Check status
         if self._status == SimpleActionState.INACTIVE:
             # Set the outcome on the result state
-            if self._goal_status == GoalStatus.SUCCEEDED:
+            if self._goal_status == GoalStatus.STATUS_SUCCEEDED:
                 outcome = 'succeeded'
-            elif self._goal_status == GoalStatus.PREEMPTED and self.preempt_requested():
+            elif self._goal_status == GoalStatus.STATUS_CANCELED and self.preempt_requested():
                 outcome = 'preempted'
                 self.service_preempt()
             else:
@@ -399,7 +401,7 @@ class SimpleActionState(RosState):
         method returns.
         """
         def get_result_str(i):
-            strs = ('PENDING','ACTIVE','PREEMPTED','SUCCEEDED','ABORTED','REJECTED','LOST')
+            strs = ('STATUS_UNKONWN','STATUS_ACCEPTED','STATUS_EXECUTING','STATUS_CANCELING','STATUS_SUCCEEDED','STATUS_CANCELED','STATUS_ABORTED')
             if i < len(strs):
                 return strs[i]
             else:
@@ -409,9 +411,9 @@ class SimpleActionState(RosState):
 
         # Calculate duration
         self._duration = self.node.get_clock().now() - self._activate_time
-        rospy.logdebug("Action "+self._action_name+" terminated after "\
-                +str(self._duration.to_sec())+" seconds with result "\
-                +get_result_str(gh.status())+".")
+        self.node.get_logger().debug("Action "+self._action_name+" terminated after "\
+                +str(self._duration)+" nanoseconds with result "\
+                +get_result_str(gh.status)+".")
 
         # Store goal state
         self._goal_status = gh.status
