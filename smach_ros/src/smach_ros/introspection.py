@@ -60,7 +60,7 @@ class IntrospectionClient():
         initial_status_msg = SmachContainerInitialStatusCmd(
                 path = path,
                 initial_states = initial_states,
-                local_data = pickle.dumps(initial_userdata._data,2))
+                local_data = pickle.dumps(initial_userdata._data,2).decode('latin1'))
 
         # A status message to receive confirmation that the state was set properly
         msg_response = SmachContainerStatus()
@@ -95,7 +95,7 @@ class IntrospectionClient():
                     # Check if the heartbeat came back to match
                     state_match = all([s in msg_response.initial_states for s in initial_states])
                     local_data = smach.UserData()
-                    local_data._data = pickle.loads(msg_response.local_data)
+                    local_data._data = pickle.loads(msg_response.local_data.encode('latin1'))
                     ud_match = all([\
                             (key in local_data and local_data._data[key] == initial_userdata._data[key])\
                             for key in initial_userdata._data])
@@ -222,7 +222,7 @@ class ContainerProxy():
                     path,
                     self._container.get_initial_states(),
                     self._container.get_active_states(),
-                    pickle.dumps(self._container.userdata._data,2),
+                    pickle.dumps(self._container.userdata._data, 2).decode('latin1'),
                     info_str)
             # Publish message
             self._status_pub.publish(state_msg)
@@ -247,7 +247,7 @@ class ContainerProxy():
         if msg.path == self._path:
             if all(s in self._container.get_children() for s in initial_states):
                 ud = smach.UserData()
-                ud._data = pickle.loads(msg.local_data)
+                ud._data = pickle.loads(msg.local_data.encode('latin1'))
                 rospy.logdebug("Setting initial state in smach path: '"+self._path+"' to '"+str(initial_states)+"' with userdata: "+str(ud._data))
 
                 # Set the initial state
