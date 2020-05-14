@@ -21,7 +21,7 @@ def pinger():
     msg = Empty()
     r = rospy.Rate(10.0)
     while not rospy.is_shutdown():
-        print "publish!"
+        print("publish!")
         pub.publish(msg)
         r.sleep()
 

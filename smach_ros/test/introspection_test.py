@@ -54,7 +54,7 @@ class TestIntrospection(unittest.TestCase):
             with sm3:
                 StateMachine.add("SETTER", Setter(), {})
             StateMachine.add('GETTER2', Getter(), {'done':'SM2'})
-            
+
         sm.set_initial_state(['GETTER1'])
         sm2.set_initial_state(['SETTER'])
         sm3.set_initial_state(['SETTER'])
