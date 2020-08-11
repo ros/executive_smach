@@ -282,6 +282,8 @@ class Concurrence(smach.container.Container):
         # Determine the outcome from the outcome map
         smach.logdebug("SMACH Concurrence determining contained state outcomes.")
         for (container_outcome, outcomes_list) in ((k,self._outcome_map[k]) for k in self._outcome_map):
+            if not isinstance(outcomes_list, list):
+                outcomes_list = [outcomes_list]
             for outcomes in outcomes_list:
                 if all([self._child_outcomes[label] == outcomes[label] for label in outcomes]):
                     smach.logdebug("Terminating concurrent split with mapped outcome.")
@@ -393,6 +395,8 @@ class Concurrence(smach.container.Container):
     def get_internal_edges(self):
         int_edges = []
         for (container_outcome, outcomes_list) in ((k,self._outcome_map[k]) for k in self._outcome_map):
+            if not isinstance(outcomes_list, list):
+                outcomes_list = [outcomes_list]
             for outcomes in outcomes_list:
                 for state_key in outcomes:
                     int_edges.append((outcomes[state_key], state_key, container_outcome))
@@ -400,6 +404,8 @@ class Concurrence(smach.container.Container):
 
     def check_consistency(self):
         for (co,outcomes_list) in ((k,self._outcome_map[k]) for k in self._outcome_map):
+            if not isinstance(outcomes_list, list):
+                outcomes_list = [outcomes_list]
             for cso in outcomes_list:
                 for state_label,outcome in ((k,cso[k]) for k in cso):
                     if outcome not in self._states[state_label].get_registered_outcomes():
