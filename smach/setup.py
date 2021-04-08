@@ -9,7 +9,6 @@ setup(
     name=package_name,
     version='2.0.1',
     packages=[package_name],
-    package_dir={'': 'src'},
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='Isaac I. Y. Saito',
