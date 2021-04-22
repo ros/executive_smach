@@ -37,7 +37,7 @@ class ConditionState(RosState):
         self._max_checks = max_checks
 
     def execute(self, ud):
-        rate = self.node.create_rate(1 / self._poll_rate)
+        rate = self.node.create_rate(self._poll_rate)
         start_time =  self.node.get_clock().now()
         n_checks = 0
 
