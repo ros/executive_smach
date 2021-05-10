@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import rclpy
 import rclpy.time
+from rclpy.duration import Duration
 import rclpy.action
 from rclpy.action.client import GoalStatus
 
@@ -49,8 +50,8 @@ class SimpleActionState(RosState):
             outcomes = [],
             # Timeouts
             exec_timeout = None,
-            preempt_timeout = rclpy.time.Duration(seconds=60.0),
-            server_wait_timeout = rclpy.time.Duration(seconds=60.0)
+            preempt_timeout = Duration(seconds=60.0),
+            server_wait_timeout = Duration(seconds=60.0)
             ):
         """Constructor for SimpleActionState action client wrapper.
 
@@ -208,7 +209,7 @@ class SimpleActionState(RosState):
         # Declare some status variables
         self._activate_time = self.node.get_clock().now()
         self._preempt_time = self.node.get_clock().now()
-        self._duration = rclpy.time.Duration(seconds=0.0)
+        self._duration = Duration(seconds=0.0)
         self._status = SimpleActionState.WAITING_FOR_SERVER
 
         # Construct action client, and wait for it to come active
