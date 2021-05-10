@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import rclpy
+from rclpy.action import ActionServer
 from rclpy.executors import SingleThreadedExecutor, MultiThreadedExecutor
 
 import unittest
@@ -34,12 +35,30 @@ class AssertUDState(State):
         return 'succeeded'
 
 
+# Create a trivial action server
+class FibonacciActionServer(object):
+    def __init__(self, node):
+        self.__node = node
+        self._action_server = ActionServer(
+            node,
+            Fibonacci,
+            'fibonacci',
+            self.execute_callback)
+
+    def execute_callback(self, goal_handle):
+        self.__node.get_logger().info('Executing goal...')
+        goal_handle.succeed()
+        result = Fibonacci.Result()
+        return result
+
 # ## Test harness
 class TestActionlib(unittest.TestCase):
     def test_action_client(self):
         """Test simple action states"""
+        rclpy.init()
         node = rclpy.create_node('simple_action_test')
         node.get_logger().set_level(rclpy.logging.LoggingSeverity.DEBUG)
+        server = FibonacciActionServer(node=node)
         executor = SingleThreadedExecutor()
         def spin():
             rclpy.spin(node, executor=executor)
@@ -168,7 +187,6 @@ class TestActionlib(unittest.TestCase):
         assert sq_outcome == 'foobar'
 
 def main():
-    rclpy.init()
     unittest.main()
     rclpy.shutdown()
 
