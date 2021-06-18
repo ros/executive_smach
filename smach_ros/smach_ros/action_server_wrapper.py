@@ -6,8 +6,8 @@ import traceback
 import time
 
 import rclpy.action
-from rclpy.action.server import GoalStatus
-from rclpy.action import ActionServer
+from rclpy.action.server import GoalStatus, GoalResponse
+from rclpy.action import ActionServer,CancelResponse
 from smach_msgs.msg import *
 import smach
 
@@ -123,9 +123,10 @@ class ActionServerWrapper():
         # Construct action server (don't start it until later)
 
         self._action_server = ActionServer(self.__node,
-                                                        self._action_spec,
-                                                        self._server_name,
-                                                        self.execute_cb)
+                                        self._action_spec,
+                                        self._server_name,
+                                        self.execute_cb,
+                                        cancel_callback = self.action_server_wrapper_cancel_callback)
         
         # Store and check the terminal outcomes
         self._succeeded_outcomes = set(succeeded_outcomes)
@@ -175,10 +176,17 @@ class ActionServerWrapper():
         
 
 
+    def action_server_wrapper_cancel_callback(self,cancel_request):
+        self.__node.get_logger().debug("cancel callback is called")
+        return CancelResponse.ACCEPT
+
+
     def preempt_check(self):
         while(self.__goal_handle.status not in [GoalStatus.STATUS_SUCCEEDED,GoalStatus.STATUS_CANCELING,
                                                 GoalStatus.STATUS_CANCELED,GoalStatus.STATUS_ABORTED]):
             time.sleep(0.05)
+            self.__node.get_logger().debug("Status %d" % self.__goal_handle.status)
+        self.__node.get_logger().debug("Status %d" % self.__goal_handle.status)
         if self.__goal_handle.is_cancel_requested:
             self.preempt_cb()
 
@@ -197,14 +205,16 @@ class ActionServerWrapper():
 
         # Expand the goal into the root userdata for this server
         if self._expand_goal_slots:
-            for slot in action_spec.Goal.get_fields_and_field_types().keys():
+            for slot in self._action_spec.Goal.get_fields_and_field_types().keys():
                 self.userdata[slot] = getattr(goal_handle.request, slot)
+                self.wrapped_container.register_input_keys(list([slot]))
 
         # Store the goal in the container local userdate
         self.userdata[self._goal_key] = goal_handle.request       
         # Store mapped goal slots in local userdata
         for from_key,to_key in ((k,self._goal_slots_map[k]) for k in self._goal_slots_map):
             self.userdata[to_key] = getattr(goal_handle.request,from_key)
+            
 
         thread = threading.Thread(target=self.preempt_check)
         thread.start()
@@ -231,7 +241,6 @@ class ActionServerWrapper():
 
         # Grab the (potentially) populated result from the userdata
         result = self.userdata[self._result_key]
-        print(result)
         # Store mapped slots in result
         for from_key, to_key in ((k,self._result_slots_map[k]) for k in self._result_slots_map):
             setattr(result, from_key, self.userdata[to_key])
