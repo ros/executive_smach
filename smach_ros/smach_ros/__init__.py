@@ -34,7 +34,7 @@ import smach
 __all__ = ['set_preempt_handler',
         'RosState',
         'SmachNode',
-        #'ActionServerWrapper', ### Wraps a SMACH SM into an Action server
+        'ActionServerWrapper', ### Wraps a SMACH SM into an Action server
         'IntrospectionClient','IntrospectionServer',
         'SimpleActionState',
         'ServiceState',
@@ -54,7 +54,7 @@ smach.set_shutdown_check(lambda: not rclpy.ok())
 from .util import set_preempt_handler
 
 ### Top-level Containers / Wrappers
-#from .action_server_wrapper import ActionServerWrapper
+from .action_server_wrapper import ActionServerWrapper
 from .introspection import IntrospectionClient, IntrospectionServer
 
 ### State Classes
