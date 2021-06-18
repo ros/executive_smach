@@ -182,9 +182,10 @@ class ActionServerWrapper():
 
 
     def preempt_check(self):
+        rate = self.__node.create_rate(20)
         while(self.__goal_handle.status not in [GoalStatus.STATUS_SUCCEEDED,GoalStatus.STATUS_CANCELING,
                                                 GoalStatus.STATUS_CANCELED,GoalStatus.STATUS_ABORTED]):
-            time.sleep(0.05)
+            rate.sleep()
             self.__node.get_logger().debug("Status %d" % self.__goal_handle.status)
         self.__node.get_logger().debug("Status %d" % self.__goal_handle.status)
         if self.__goal_handle.is_cancel_requested:
