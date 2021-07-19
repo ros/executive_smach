@@ -144,7 +144,7 @@ class ActionServerWrapper():
         # Stat server (because we disabled auto-start to register the callbacks)
         self._action_server.start()
 
-        rospy.loginfo("Started SMACH action server wrapper, adversiting as '%s'" % self._server_name)
+        rospy.loginfo("Started SMACH action server wrapper, advertising as '%s'" % self._server_name)
 
     ### State machine callbacks
     def transition_cb(self, userdata, active_states):
