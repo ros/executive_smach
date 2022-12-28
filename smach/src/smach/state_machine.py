@@ -428,9 +428,13 @@ class StateMachine(smach.container.Container):
 
         with self._state_executing_lock:
             # Set initial state
-            self._set_current_state(self._initial_state_label)
-            # Call start callbacks
-            self.call_start_cbs()
+            if self._initial_state_label not in self._states:
+                smach.logwarn("Try to set inital state '%s', but it does not exist. Available states are: %s" %
+                              (self._initial_state_label, list(self._states.keys())))
+            else:
+                self._set_current_state(self._initial_state_label)
+                # Call start callbacks
+                self.call_start_cbs()
 
     def get_active_states(self):
         return [str(self._current_label)]
