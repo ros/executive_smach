@@ -71,6 +71,14 @@ class StateMachine(smach.container.Container):
         self._execute_thread = None
         self.userdata = smach.UserData()
 
+    ### Getter and Setter to allow pickling and unpickling state machines
+    def __getstate__(self):
+        return {k:v for (k, v) in self.__dict__.items() if k is not "_state_transitioning_lock"}
+
+    def __setstate__(self, d):
+        self.__dict__ = d
+        self._state_transitioning_lock = threading.Lock()
+
     ### Construction methods
     @staticmethod
     def add(label, state, transitions=None, remapping=None):
