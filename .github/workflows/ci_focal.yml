@@ -3,6 +3,7 @@ name: CI - Ubuntu Focal
 on:
   # direct pushes to protected branches are not supported
   pull_request:
+  push:
   # run every day, at 6am UTC
   schedule:
     - cron: '0 6 * * *'
@@ -16,8 +17,8 @@ jobs:
 
     strategy:
       matrix:
-        ros_distro: [ noetic ]
-        ros_repo: [ noetic-devel ]
+        ROS_DISTRO: [ noetic ]
+        ROS_REPO: [ noetic-devel ]
 
     env:
       CCACHE_DIR: "${{ github.workspace }}/.ccache"
