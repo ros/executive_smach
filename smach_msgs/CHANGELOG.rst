@@ -2,6 +2,9 @@
 Changelog for package smach_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.1 (2023-02-15)
+------------------
+
 2.5.0 (2020-05-14)
 ------------------
 * Python 3 compatibility `#71 <https://github.com/ros/executive_smach/issues/71>`_
