@@ -2,6 +2,12 @@
 Changelog for package smach
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.1 (2023-02-15)
+------------------
+* Fix: state machines cannot be pickled `#86 <https://github.com/ros/executive_smach/issues/86>`  
+* Fix: Python 3.9 compatibility  `#82 <https://github.com/ros/executive_smach/issues/82>`
+* Typo
+
 2.5.0 (2020-05-14)
 ------------------
 * Python 3 compatibility `#71 <https://github.com/ros/executive_smach/issues/71>`_

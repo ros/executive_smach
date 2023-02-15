@@ -2,6 +2,11 @@
 Changelog for package smach_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.1 (2023-02-15)
+------------------
+* Fix: response_slots when action goal is lost `#64 <https://github.com/ros/executive_smach/issues/64>`  
+* Fix: Typos
+
 2.5.0 (2020-05-14)
 ------------------
 * Python 3 compatibility `#71 <https://github.com/ros/executive_smach/issues/71>`_
