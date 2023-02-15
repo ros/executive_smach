@@ -361,8 +361,10 @@ class SimpleActionState(State):
         if self._result_key is not None:
             ud[self._result_key] = self._goal_result
 
-        for key in self._result_slots:
-            ud[key] = getattr(self._goal_result, key)
+        # Goal might be None, for instance if goal was LOST.
+        if self._goal_result is not None:
+            for key in self._result_slots:
+                ud[key] = getattr(self._goal_result, key)
 
         # Check status
         if self._status == SimpleActionState.INACTIVE:
