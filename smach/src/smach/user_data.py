@@ -140,7 +140,7 @@ class Remapper(object):
 
     def __getitem__(self, key):
         if key not in self._input:
-            raise smach.InvalidUserCodeError("Reading from SMACH userdata key '%s' but the only keys that were declared as input to this state were: %s. This key needs to be declaread as input to this state. " % (key, self._input))
+            raise smach.InvalidUserCodeError("Reading from SMACH userdata key '%s' but the only keys that were declared as input to this state were: %s. This key needs to be declared as input to this state. " % (key, self._input))
         if key not in self._output:
             return get_const(self._ud.__getitem__(self._remap(key)))
         return self._ud.__getitem__(self._remap(key))
@@ -164,7 +164,7 @@ class Remapper(object):
         if name[0] == '_':
             return object.__getattr__(self, name)
         if name not in self._input:
-            raise smach.InvalidUserCodeError("Reading from SMACH userdata key '%s' but the only keys that were declared as input to this state were: %s. This key needs to be declaread as input to this state. " % (name, self._input))
+            raise smach.InvalidUserCodeError("Reading from SMACH userdata key '%s' but the only keys that were declared as input to this state were: %s. This key needs to be declared as input to this state. " % (name, self._input))
         if name not in self._output:
             return get_const(getattr(self._ud, self._remap(name)))
         return getattr(self._ud, self._remap(name))

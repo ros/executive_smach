@@ -2,6 +2,12 @@
 Changelog for package executive_smach
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.0 (2020-05-14)
+------------------
+* Python 3 compatibility `#71 <https://github.com/ros/executive_smach/issues/71>`_
+* Bump CMake version to avoid CMP0048 warning
+* Contributors: Shane Loretz, ahcorde
+
 2.0.1 (2017-06-08)
 ------------------
 * [fix] SimpleActionState will wait forever for a missing ActionServer `#41 <https://github.com/ros/executive_smach/pull/41>`_

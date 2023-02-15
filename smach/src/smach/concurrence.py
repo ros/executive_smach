@@ -174,7 +174,7 @@ class Concurrence(smach.container.Container):
 
         # Condition variables for threading synchronization
         self._user_code_exception = False
-        self._done_cond = threading.Condition()
+        self._done_event = threading.Event()
         self._ready_event =  threading.Event()
 
     ### Construction methods
@@ -225,17 +225,16 @@ class Concurrence(smach.container.Container):
         # Launch threads
         for thread in self._threads.values():
             thread.start()
-        
-        # Wait for done notification
-        self._done_cond.acquire()
-        
-        # Notify all threads ready to go
         self._ready_event.set()
-        
-        # Wait for a done notification from a thread
-        self._done_cond.wait()
-        self._done_cond.release()
-
+        # Wait for done notification
+        while not smach.is_shutdown() and not self._done_event.isSet():
+            if(self.preempt_requested()):
+                smach.logwarn("SMACH Concurrence detected preempt request")
+                request_preempt()
+                
+        if smach.is_shutdown():
+            smach.logwarn("SMACH is shutdown")
+        smach.logdebug("SMACH Concurrence child states triggered done")
         # Preempt any running states
         smach.logdebug("SMACH Concurrence preempting running states.")
         for label in self._states:
@@ -243,12 +242,7 @@ class Concurrence(smach.container.Container):
                 self._states[label].request_preempt()
 
         # Wait for all states to terminate
-        while not smach.is_shutdown():
-            if all([not t.isAlive() for t in self._threads.values()]):
-                break
-            self._done_cond.acquire()
-            self._done_cond.wait(0.1)
-            self._done_cond.release()
+        [t.join() for t in self._threads.values()]
 
         # Check for user code exception
         if self._user_code_exception:
@@ -318,8 +312,7 @@ class Concurrence(smach.container.Container):
         smach.State.request_preempt(self)
 
         # Notify concurrence that it should preempt running states and terminate
-        with self._done_cond:
-            self._done_cond.notify_all()
+        self._done_event.set()
 
 
     def _state_runner(self,label):
@@ -339,32 +332,31 @@ class Concurrence(smach.container.Container):
                 self._remappings[label]))
         except:
             self._user_code_exception = True
-            with self._done_cond:
-                self._done_cond.notify_all()
+            self._done_event.set()
             raise smach.InvalidStateError(("Could not execute child state '%s': " % label)+traceback.format_exc())
 
         # Make sure the child returned an outcome
-        if self._child_outcomes[label] is None:
+        if not self._shutdown_requested and self._child_outcomes[label] is None:
             raise smach.InvalidStateError("Concurrent state '%s' returned no outcome on termination." % label)
         else:
             smach.loginfo("Concurrent state '%s' returned outcome '%s' on termination." % (label, self._child_outcomes[label]))
 
         # Check if all of the states have completed
-        with self._done_cond:
-            # initialize preemption flag
-            preempt_others = False
-            # Call transition cb's
-            self.call_transition_cbs()
-            # Call child termination cb if it's defined
-            if self._child_termination_cb:
-                try:
-                    preempt_others = self._child_termination_cb(self._child_outcomes)
-                except:
-                    raise smach.InvalidUserCodeError("Could not execute child termination callback: "+traceback.format_exc())
 
-            # Notify the container to terminate (and preempt other states if neceesary)
-            if preempt_others or all([o is not None for o in self._child_outcomes.values()]):
-                self._done_cond.notify_all()
+        # initialize preemption flag
+        preempt_others = False
+        # Call transition cb's
+        self.call_transition_cbs()
+        # Call child termination cb if it's defined
+        if self._child_termination_cb:
+            try:
+                preempt_others = self._child_termination_cb(self._child_outcomes)
+            except:
+                raise smach.InvalidUserCodeError("Could not execute child termination callback: "+traceback.format_exc())
+
+        # Notify the container to terminate (and preempt other states if neceesary)
+        if preempt_others or all([o is not None for o in self._child_outcomes.values()]):
+            self._done_event.set()
 
     ### Container interface
     def get_children(self):
