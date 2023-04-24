@@ -19,7 +19,7 @@ Changelog for package smach
 * Fix syntax errors, doc typos and indentations glitches
 * Fixed invalid exception type in concurrence.py
 * Checking threads have fully terminated before cleanup of outcomes dict
-  This commit uses thread.isAlive() on each concurrent state runner to check for termination of all the threads before continuing. This is necessary as only checking that the outcome has been filled in does not mean the thread has completed; if the thread has not completed it may not yet have called the termination callback. If this loop exits before the termination callback of the last thread is called, then the callback will occasionally be sent an empty dictionary (when the main thread has got to line 305).
+  This commit uses thread.is_alive() on each concurrent state runner to check for termination of all the threads before continuing. This is necessary as only checking that the outcome has been filled in does not mean the thread has completed; if the thread has not completed it may not yet have called the termination callback. If this loop exits before the termination callback of the last thread is called, then the callback will occasionally be sent an empty dictionary (when the main thread has got to line 305).
 * cope with missed state termination notifications
   Concurrent states could terminate and notify _ready_event without the concurrence container realising, as it could be busy checking the outcome values. This makes the concurrency container get stuck on line 250. This commit adds a timeout to the wait to safely cope with missing notifications.
 * Adding event for thread synchronization in concurrence and using event not condition in monitor state
