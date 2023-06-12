@@ -1,4 +1,4 @@
-Header header
+std_msgs/Header header
 
 # The path to this node in the server
 string path
@@ -12,7 +12,7 @@ string[] active_states
 
 # A pickled user data structure
 # i.e. the UserData's internal dictionary
-string local_data
+uint8[] local_data
 
 # Debugging info string
 string info

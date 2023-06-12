@@ -1,18 +1,17 @@
-
-import roslib; roslib.load_manifest('smach_ros')
-import rospy
+#!/usr/bin/env python3
+import rclpy
 
 import threading
-import traceback
 
 import smach
-from smach.state import *
+from .ros_state import RosState
 
 __all__ = ['ServiceState']
 
-class ServiceState(smach.State):
+class ServiceState(RosState):
     """State for calling a service."""
     def __init__(self,
+            node,
             # Service info
             service_name,
             service_spec,
@@ -35,7 +34,7 @@ class ServiceState(smach.State):
             outcomes = [],
             ):
 
-        smach.State.__init__(self,outcomes=['succeeded','aborted','preempted'])
+        RosState.__init__(self, node, outcomes=['succeeded', 'aborted', 'preempted'])
 
         # Store Service info
         self._service_name = service_name
@@ -45,11 +44,11 @@ class ServiceState(smach.State):
 
         # Store request policy
         if request is None:
-            self._request = service_spec._request_class()
+            self._request = service_spec.Request()
         else:
             self._request = request
 
-        
+
         if request_cb is not None and not hasattr(request_cb, '__call__'):
             raise smach.InvalidStateError("Request callback object given to ServiceState that IS NOT a function object")
 
@@ -105,32 +104,32 @@ class ServiceState(smach.State):
         self._response_slots = response_slots
         self.register_output_keys(response_slots)
 
+        self._proxy = self.node.create_client(self._service_spec, self._service_name)
+
     def execute(self, ud):
         """Execute service"""
         # Check for preemption before executing
         if self.preempt_requested():
-            rospy.loginfo("Preempting %s before sending request." % self._service_name)
+            self.node.get_logger().info("Preempting %s before sending request." % self._service_name)
             self.service_preempt()
             return 'preempted'
 
         # Make sure we're connected to the service
         try:
-            while self._proxy is None:
+            while not self._proxy.service_is_ready():
                 if self.preempt_requested():
-                    rospy.loginfo("Preempting while waiting for service '%s'." % self._service_name)
+                    self.node.get_logger().info("Preempting while waiting for service '%s'." % self._service_name)
                     self.service_preempt()
                     return 'preempted'
-                if rospy.is_shutdown():
-                    rospy.loginfo("Shutting down while waiting for service '%s'." % self._service_name)
+                if not rclpy.ok():
+                    self.node.get_logger().info("Shutting down while waiting for service '%s'." % self._service_name)
                     return 'aborted'
-                try:
-                    rospy.wait_for_service(self._service_name,1.0)
-                    self._proxy = rospy.ServiceProxy(self._service_name, self._service_spec)
-                    rospy.logdebug("Connected to service '%s'" % self._service_name)
-                except rospy.ROSException as ex:
-                    rospy.logwarn("Still waiting for service '%s'..." % self._service_name)
+                if self._proxy.wait_for_service(1.0):
+                    self.node.get_logger().debug("Connected to service '%s'" % self._service_name)
+                else:
+                    self.node.get_logger().warn("Still waiting for service '%s'..." % self._service_name)
         except:
-            rospy.logwarn("Terminated while waiting for service '%s'." % self._service_name)
+            self.node.get_logger().warn("Terminated while waiting for service '%s'." % self._service_name)
             return 'aborted'
 
         # Grab request key if set
@@ -138,7 +137,7 @@ class ServiceState(smach.State):
             if self._request_key in ud:
                 self._request = ud[self._request_key]
             else:
-                rospy.logerr("Requested request key '%s' not in userdata struture. Available keys are: %s" % (self._request_key, str(list(ud.keys()))))
+                self.node.get_logger().error("Requested request key '%s' not in userdata struture. Available keys are: %s" % (self._request_key, str(list(ud.keys()))))
                 return 'aborted'
 
         # Write request fields from userdata if set
@@ -146,7 +145,7 @@ class ServiceState(smach.State):
             if key in ud:
                 setattr(self._request,key,ud[key])
             else:
-                rospy.logerr("Requested request slot key '%s' is not in userdata strcture. Available keys are: %s" % (key, str(list(ud.keys()))))
+                self.node.get_logger().error("Requested request slot key '%s' is not in userdata strcture. Available keys are: %s" % (key, str(list(ud.keys()))))
                 return 'aborted'
 
         # Call user-supplied callback, if set, to get a request
@@ -164,20 +163,20 @@ class ServiceState(smach.State):
                 if request_update is not None:
                     self._request = request_update
             except:
-                rospy.logerr("Could not execute request callback: "+traceback.format_exc())
+                self.node.get_logger().error("Could not execute request callback: "+traceback.format_exc())
                 return 'aborted'
 
         if self._request is None:
-            rospy.logerr("Attempting to call service "+self._service_name+" with no request")
+            self.node.get_logger().error("Attempting to call service "+self._service_name+" with no request")
             return 'aborted'
 
         # Call service
         # Abandon hope, all ye who enter here
         try:
-            rospy.logdebug("Calling service %s with request:\n%s" % (self._service_name, str(self._request)))
-            self._response = self._proxy(self._request)
-        except rospy.ServiceException as ex:
-            rospy.logerr("Exception when calling service '%s': %s" % (self._service_name, str(ex)))
+            self.node.get_logger().debug("Calling service %s with request:\n%s" % (self._service_name, str(self._request)))
+            self._response = self._proxy.call(self._request)
+        except TypeError as ex:
+            self.node.get_logger().error("Exception when calling service '%s': %s" % (self._service_name, str(ex)))
             return 'aborted'
 
         # Call response callback if it's set
@@ -194,10 +193,10 @@ class ServiceState(smach.State):
                         *self._response_cb_args,
                         **self._response_cb_kwargs)
                 if response_cb_outcome is not None and response_cb_outcome not in self.get_registered_outcomes():
-                    rospy.logerr("Result callback for service "+self._service_name+", "+str(self._response_cb)+" was not registered with the response_cb_outcomes argument. The response callback returned '"+str(response_cb_outcome)+"' but the only registered outcomes are: "+str(self.get_registered_outcomes()))
+                    self.node.get_logger().error("Result callback for service "+self._service_name+", "+str(self._response_cb)+" was not registered with the response_cb_outcomes argument. The response callback returned '"+str(response_cb_outcome)+"' but the only registered outcomes are: "+str(self.get_registered_outcomes()))
                     return 'aborted'
             except:
-                rospy.logerr("Could not execute response callback: "+traceback.format_exc())
+                self.node.get_logger().error("Could not execute response callback: "+traceback.format_exc())
                 return 'aborted'
 
         if self._response_key is not None:

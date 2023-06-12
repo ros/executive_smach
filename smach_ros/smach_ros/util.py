@@ -1,9 +1,9 @@
-
-import roslib; roslib.load_manifest('smach_ros')
-import rospy
+#!/usr/bin/env python3
+import rclpy
 
 import threading
 import smach
+import time
 
 __all__ = ['set_preempt_handler']
 
@@ -11,7 +11,7 @@ __all__ = ['set_preempt_handler']
 def set_preempt_handler(sc):
     """Sets a ROS pre-shutdown handler to preempt a given SMACH container when
     ROS receives a shutdown request.
-    
+
     This can be attached to multiple containers, but only needs to be used on
     the top-level containers.
 
@@ -23,9 +23,8 @@ def set_preempt_handler(sc):
         sc.request_preempt()
 
         while sc.is_running():
-            rospy.loginfo("Received shutdown request... sent preempt... waiting for state machine to terminate.")
-            rospy.sleep(1.0)
+            rclpy.logging.get_logger(__name__).info("Received shutdown request... sent preempt... waiting for state machine to terminate.")
+            time.sleep(1.0)
 
     ### Add handler
-    rospy.core.add_client_shutdown_hook(lambda: handler(sc))
-
+    rclpy.get_default_context().on_shutdown(lambda: handler(sc))

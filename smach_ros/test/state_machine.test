@@ -1,4 +1,0 @@
-<launch>
-  <node pkg="smach_ros" type="ref_server.py" name="ref_server" output="screen"/>
-  <test test-name="state_machine" pkg="smach_ros" time-limit="60.0" type="state_machine.py" />
-</launch>

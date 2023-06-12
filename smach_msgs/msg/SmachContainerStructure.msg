@@ -1,4 +1,4 @@
-Header header
+std_msgs/Header header
 
 # The path to this node in the server
 string path
