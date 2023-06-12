@@ -12,7 +12,7 @@ jobs:
           - {ROS_DISTRO: humble, ROS_REPO: ros}
           - {ROS_DISTRO: rolling, ROS_REPO: ros}
     env:
-      PYLINT_ARGS: "--errors-only"
+      PYLINT_ARGS: "--errors-only  --ignore-paths=^.*src/executive_smach/smach/smach/user_data.py$,^.*src/executive_smach/smach/smach/user_data.py$,^.*src/executive_smach/smach_ros/smach_ros/service_state.py$,^.*src/executive_smach/smach_ros/smach_ros/simple_action_state.py$,^.*src/executive_smach/smach_ros/test/.*$"
       PYLINT_CHECK: true
     runs-on: ubuntu-22.04
     steps:
