@@ -7,7 +7,7 @@ package_name = 'smach_ros'
 
 setup(
     name=package_name,
-    version='2.0.1',
+    version='3.0.0',
     packages=[package_name],
     install_requires=['setuptools'],
     zip_safe=True,

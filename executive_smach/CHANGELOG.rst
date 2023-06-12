@@ -2,6 +2,10 @@
 Changelog for package executive_smach
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.0 (2023-06-12)
+------------------
+* ROS2-ified. `#101 <https://github.com/ros/executive_smach/issues/101>`_
+
 2.5.1 (2023-02-15)
 ------------------
 
