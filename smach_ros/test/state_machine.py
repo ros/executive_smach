@@ -1,54 +1,66 @@
-#!/usr/bin/env python
-
-import roslib; roslib.load_manifest('smach_ros')
-import rospy
-import rostest
+#!/usr/bin/env python3
+import rclpy
+from rclpy.executors import SingleThreadedExecutor, MultiThreadedExecutor
 
 import unittest
-
-from actionlib import *
-from actionlib.msg import *
+import threading
 
 from smach import *
 from smach_ros import *
-
 from smach_msgs.msg import *
 
 # Static goals
-g1 = TestGoal(1) # This goal should succeed
-g2 = TestGoal(2) # This goal should abort
-g3 = TestGoal(3) # This goal should be rejected
+from action_tutorials_interfaces.action import Fibonacci
+g1 = Fibonacci.Goal(order=1)
+g2 = Fibonacci.Goal(order=2)
 
 ### Custom state classe
-class Setter(State):
+class Setter(RosState):
     """State that sets the key 'a' in its userdata"""
-    def __init__(self):
-        State.__init__(self,['done'],[],['a'])
-    def execute(self,ud):
+    def __init__(self, node):
+        RosState.__init__(self, node,
+            outcomes=['done'], output_keys=['a'])
+    def execute(self, ud):
         ud.a = 'A'
-        rospy.loginfo("Added key 'a'.")
+        self.node.get_logger().info("Added key 'a'.")
         return 'done'
 
-class Getter(State):
+class Getter(RosState):
     """State that grabs the key 'a' from userdata, and sets 'b'"""
-    def __init__(self):
-        State.__init__(self,['done'],['a'],['b'])
+    def __init__(self, node):
+        RosState.__init__(self, node,
+            outcomes=['done'],
+            input_keys=['a'], output_keys=['b'])
     def execute(self,ud):
+        rate = self.node.create_rate(10)
         while 'a' not in ud:
-            #rospy.loginfo("Waiting for key 'a' to appear. ")
-            rospy.sleep(0.1)
+            self.node.get_logger().info("Waiting for key 'a' to appear. ")
+            rate.sleep()
         ud.b = ud.a
         return 'done'
 
 ### Test harness
 class TestStateMachine(unittest.TestCase):
+    def setUp(self):
+        self.node = rclpy.create_node('state_machine_test')
+        self.node.get_logger().set_level(rclpy.logging.LoggingSeverity.DEBUG)
+        self.executor = SingleThreadedExecutor()
+
+    def tearDown(self):
+        self.node.destroy_node()
+
+    def spin(self):
+        rclpy.spin(self.node, executor=self.executor)
+
     def test_userdata(self):
         """Test serial manipulation of userdata."""
         sm = StateMachine(['done'])
         with sm:
-            StateMachine.add('SETTER', Setter(),{'done':'GETTER'})
-            StateMachine.add('GETTER', Getter(),{})
+            StateMachine.add('SETTER', Setter(self.node),{'done':'GETTER'})
+            StateMachine.add('GETTER', Getter(self.node),{})
 
+        spinner = threading.Thread(target=self.spin)
+        spinner.start()
         outcome = sm.execute()
 
         assert outcome == 'done'
@@ -60,18 +72,21 @@ class TestStateMachine(unittest.TestCase):
         """Test serial manipulation of userdata."""
         sm = StateMachine(['done','preempted','aborted'])
         with sm:
-            StateMachine.add('SETTER', Setter(),{'done':'GETTER'})
-            StateMachine.add('GETTER', Getter(),{'done':'NEST'})
+            StateMachine.add('SETTER', Setter(self.node),{'done':'GETTER'})
+            StateMachine.add('GETTER', Getter(self.node),{'done':'NEST'})
 
             sm2 = StateMachine(['done','aborted','preempted'])
             sm2.register_input_keys(['a'])
             with sm2:
                 StateMachine.add('ASSERTER', ConditionState(
+                    self.node,
                     lambda ud: 'a' in ud,
                     input_keys = ['a']),
-                    {'true':'done','false':'aborted'})
+                    {'true':'done', 'false':'aborted'})
             StateMachine.add('NEST',sm2)
 
+        spinner = threading.Thread(target=self.spin)
+        spinner.start()
         outcome = sm.execute()
 
         assert outcome == 'done'
@@ -85,18 +100,21 @@ class TestStateMachine(unittest.TestCase):
         sm = StateMachine(['done','aborted','preempted'])
         sm.userdata.foo = 1
         with sm:
-            StateMachine.add('SETTER', Setter(),{'done':'GETTER'})
-            StateMachine.add('GETTER', Getter(),{'done':'NEST'})
-            
+            StateMachine.add('SETTER', Setter(self.node),{'done':'GETTER'})
+            StateMachine.add('GETTER', Getter(self.node),{'done':'NEST'})
+
             sm2 = StateMachine(['done','aborted','preempted'])
             sm2.register_input_keys(['foo'])
             with sm2:
                 StateMachine.add('ASSERTER', ConditionState(
+                    self.node,
                     lambda ud: 'foo' in ud,
                     input_keys = ['foo']),
                     {'true':'done','false':'aborted'})
             StateMachine.add('NEST',sm2)
 
+        spinner = threading.Thread(target=self.spin)
+        spinner.start()
         outcome = sm.execute()
 
         assert outcome == 'done'
@@ -106,9 +124,11 @@ class TestStateMachine(unittest.TestCase):
         """Test remapping of userdata."""
         sm = StateMachine(['done','preempted','aborted'])
         with sm:
-            StateMachine.add('SETTER', Setter(), {'done':'GETTER'}, remapping = {'a':'x'})
-            StateMachine.add('GETTER', Getter(), {'done':'done'}, remapping = {'a':'x','b':'y'})
+            StateMachine.add('SETTER', Setter(self.node), {'done':'GETTER'}, remapping = {'a':'x'})
+            StateMachine.add('GETTER', Getter(self.node), {'done':'done'}, remapping = {'a':'x','b':'y'})
 
+        spinner = threading.Thread(target=self.spin)
+        spinner.start()
         outcome = sm.execute()
 
         assert outcome == 'done'
@@ -121,9 +141,12 @@ class TestStateMachine(unittest.TestCase):
         """Test adding a sequence of states."""
         sm = StateMachine(['succeeded','aborted','preempted','done'])
         with sm:
-            StateMachine.add_auto('FIRST', SimpleActionState('reference_action',TestAction, goal = g1),['succeeded'])
-            StateMachine.add_auto('SECOND', SimpleActionState('reference_action',TestAction, goal = g1),['succeeded'])
-            StateMachine.add('THIRD', SimpleActionState('reference_action',TestAction, goal = g1),{'succeeded':'done'})
+            StateMachine.add_auto('FIRST', SimpleActionState(self.node, 'fibonacci', Fibonacci, goal = g1),['succeeded'])
+            StateMachine.add_auto('SECOND', SimpleActionState(self.node, 'fibonacci', Fibonacci, goal = g1),['succeeded'])
+            StateMachine.add('THIRD', SimpleActionState(self.node, 'fibonacci', Fibonacci, goal = g1),{'succeeded':'done'})
+
+        spinner = threading.Thread(target=self.spin)
+        spinner.start()
         outcome = sm.execute()
 
         assert outcome == 'done'
@@ -142,9 +165,11 @@ class TestStateMachine(unittest.TestCase):
             StateMachine.add('FAILSAUCE',DoneState())
             transitions = {'aborted':'FAILSAUCE','preempted':'FAILSAUCE'}
             with sm:
-                StateMachine.add('FIRST', SimpleActionState('reference_action',TestAction, goal = g1), transitions)
-                StateMachine.add('SECOND', SimpleActionState('reference_action',TestAction, goal = g2), transitions)
-                StateMachine.add('THIRD', SimpleActionState('reference_action',TestAction, goal = g1), transitions)
+                StateMachine.add('FIRST', SimpleActionState(self.node, 'fibonacci', Fibonacci, goal = g1), transitions)
+                StateMachine.add('SECOND', SimpleActionState(self.node, 'fibonacci', Fibonacci, goal = g2), transitions)
+                StateMachine.add('THIRD', SimpleActionState(self.node, 'fibonacci', Fibonacci, goal = g1), transitions)
+        spinner = threading.Thread(target=self.spin)
+        spinner.start()
         outcome = sm.execute()
 
         assert outcome == 'done'
@@ -154,16 +179,19 @@ class TestStateMachine(unittest.TestCase):
 
         sm = StateMachine(['succeeded','aborted','preempted'])
         with sm.opened():
-            sm.add('FIRST', SimpleActionState('reference_action',TestAction, goal = g1),{})
-            sm.add('SECOND', SimpleActionState('reference_action',TestAction, goal = g2),{})
-            sm.add('THIRD', SimpleActionState('reference_action',TestAction, goal = g1),{})
+            sm.add('FIRST', SimpleActionState(self.node, 'fibonacci', Fibonacci, goal = g1),{})
+            sm.add('SECOND', SimpleActionState(self.node, 'fibonacci', Fibonacci, goal = g2),{})
+            sm.add('THIRD', SimpleActionState(self.node, 'fibonacci', Fibonacci, goal = g1),{})
+        spinner = threading.Thread(target=self.spin)
+        spinner.start()
         outcome = sm.execute()
 
         assert outcome == 'succeeded'
-
+    
 def main():
-    rospy.init_node('state_machine_test',log_level=rospy.DEBUG)
-    rostest.rosrun('smach', 'state_machine_test', TestStateMachine)
+    rclpy.init()
+    unittest.main()
+    rclpy.shutdown()
 
 if __name__=="__main__":
     main();

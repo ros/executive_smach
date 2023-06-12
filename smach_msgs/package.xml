@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>smach_msgs</name>
   <version>2.5.1</version>
   <description>
@@ -11,19 +12,27 @@
   <license>BSD</license>
 
   <author>Jonathan Bohren</author>
+  <author>Charles Lesire</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_cppcheck</buildtool_depend>
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
 
-  <depend>std_msgs</depend>
+  <build_depend>builtin_interfaces</build_depend>
+  <build_depend>std_msgs</build_depend>
 
-  <build_depend>message_generation</build_depend>
+  <exec_depend>builtin_interfaces</exec_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
 
-  <exec_depend>message_runtime</exec_depend>
-  <build_export_depend>message_runtime</build_export_depend>
+  <test_depend>ament_cmake_cpplint</test_depend>
+  <test_depend>ament_cmake_flake8</test_depend>
+  <test_depend>ament_cmake_pep257</test_depend>
+  <test_depend>ament_cmake_uncrustify</test_depend>
+  <test_depend>ament_lint</test_depend>
 
-  <!-- The export tag contains other, unspecified, tags -->
+  <member_of_group>rosidl_interface_packages</member_of_group>
   <export>
-    <rosdoc config="rosdoc.yaml"/>
-  </export>
+    <build_type>ament_cmake</build_type>
+  </export>  
 </package>
-

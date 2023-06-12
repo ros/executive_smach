@@ -1,4 +1,0 @@
-<launch>
-  <node pkg="smach_ros" type="ref_server.py" name="ref_server" output="screen"/>
-  <test test-name="concurrence" pkg="smach_ros" time-limit="60.0" type="concurrence.py" />
-</launch>
