@@ -2,6 +2,9 @@
 Changelog for package smach
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.1 (2023-06-12)
+------------------
+
 3.0.0 (2023-06-12)
 ------------------
 * ROS2-ified. `#101 <https://github.com/ros/executive_smach/issues/101>`_
