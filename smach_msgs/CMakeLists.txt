@@ -2,7 +2,13 @@ cmake_minimum_required(VERSION 3.22)
 
 project(smach_msgs)
 
-find_package(ament_cmake REQUIRED)
+set(AMENT_DEPS
+  ament_cmake
+  ament_cmake_flake8
+  ament_cmake_pep257)
+foreach(dep IN ITEMS ${AMENT_DEPS})
+  find_package(${dep} REQUIRED)
+endforeach()
 find_package(builtin_interfaces REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -11,7 +17,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/SmachContainerInitialStatusCmd.msg"
   "msg/SmachContainerStructure.msg"
   "msg/SmachContainerStatus.msg"
-  DEPENDENCIES builtin_interfaces std_msgs
+  DEPENDENCIES std_msgs
   ADD_LINTER_TESTS
 )
 
