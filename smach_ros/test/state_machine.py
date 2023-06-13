@@ -161,6 +161,23 @@ class TestStateMachine(unittest.TestCase):
 
         assert outcome == 'succeeded'
 
+    def test_exception(self):
+        class ErrorState(State):
+            """State falls with exception"""
+            def __init__(self):
+                State.__init__(self, ['done'])
+            def execute(self, ud):
+                raise Exception('Test exception')
+
+        sm = StateMachine(['done'])
+        with sm:
+            StateMachine.add('ERROR', ErrorState())
+
+        with self.assertRaises(InvalidUserCodeError):
+            sm.execute()
+
+        assert sm.is_running() == False  # test running flag lowered
+
 def main():
     rospy.init_node('state_machine_test',log_level=rospy.DEBUG)
     rostest.rosrun('smach', 'state_machine_test', TestStateMachine)
