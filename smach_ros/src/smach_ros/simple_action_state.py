@@ -37,6 +37,10 @@ class SimpleActionState(State):
             goal_cb = None,
             goal_cb_args = [],
             goal_cb_kwargs = {},
+            # Feedback
+            feedback_cb = None,
+            feedback_cb_args = [],
+            feedback_cb_kwargs = {},
             # Result modes
             result_key = None,
             result_slots = [],
@@ -80,6 +84,12 @@ class SimpleActionState(State):
             - userdata
             - current stored goal
         The callback  returns a goal message.
+
+        @type feedback_cb: callable
+        @param feedback_cb: This callback will be called with the feedback
+        from the action server. The callback is passed two parameters:
+            - userdata (L{UserData<smach.user_data.UserData>})
+            - feedback (actionlib feedback msg)
 
         @type result_key: string
         @param result_key: Put the result message into the userdata with
@@ -166,7 +176,23 @@ class SimpleActionState(State):
         else:
             self._goal_cb_input_keys = input_keys
             self._goal_cb_output_keys = output_keys
+            
+        # Feedback callback
+        if feedback_cb and not hasattr(feedback_cb, '__call__'):
+            raise smach.InvalidStateError("Feedback callback object given to SimpleActionState that IS NOT a function object")
+        self._feedback_cb = feedback_cb
+        self._feedback_cb_args = feedback_cb_args
+        self._feedback_cb_kwargs = feedback_cb_kwargs
+        if smach.has_smach_interface(feedback_cb):
+            self._feedback_cb_input_keys = feedback_cb.get_registered_input_keys()
+            self._feedback_cb_output_keys = feedback_cb.get_registered_output_keys()
 
+            self.register_input_keys(self._feedback_cb_input_keys)
+            self.register_output_keys(self._feedback_cb_output_keys)
+        else:
+            self._feedback_cb_input_keys = input_keys
+            self._feedback_cb_output_keys = output_keys
+   
         # Set result processing policy
         if result_cb and not hasattr(result_cb, '__call__'):
             raise smach.InvalidStateError("Result callback object given to SimpleActionState that IS NOT a function object")
@@ -329,6 +355,7 @@ class SimpleActionState(State):
 
         # Wait on done condition
         self._done_cond.acquire()
+        self._ud = ud
         self._action_client.send_goal(self._goal, self._goal_done_cb, self._goal_active_cb, self._goal_feedback_cb)
 
         # Preempt timeout watch thread
@@ -402,6 +429,16 @@ class SimpleActionState(State):
     def _goal_feedback_cb(self, feedback):
         """Goal Feedback Callback"""
         rospy.logdebug("Action "+self._action_name+" sent feedback.")
+        if self._feedback_cb is not None:
+            self._feedback_cb(
+                smach.Remapper(
+                    self._ud,
+                    self._feedback_cb_input_keys,
+                    self._feedback_cb_output_keys,
+                    []),
+                feedback,
+                *self._feedback_cb_args,
+                **self._feedback_cb_kwargs)
 
     def _goal_done_cb(self, result_state, result):
         """Goal Done Callback
