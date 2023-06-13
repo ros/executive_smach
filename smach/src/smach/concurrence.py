@@ -281,10 +281,16 @@ class Concurrence(smach.container.Container):
 
         # Determine the outcome from the outcome map
         smach.logdebug("SMACH Concurrence determining contained state outcomes.")
+        max_child_outcomes_satisfied = 0
         for (container_outcome, outcomes) in ((k,self._outcome_map[k]) for k in self._outcome_map):
+            child_outcomes_satisfied = len(outcomes)
             if all([self._child_outcomes[label] == outcomes[label] for label in outcomes]):
-                smach.logdebug("Terminating concurrent split with mapped outcome.")
-                outcome = container_outcome
+                if child_outcomes_satisfied > max_child_outcomes_satisfied:
+                    smach.logdebug("Terminating concurrent split with mapped outcome.")
+                    outcome = container_outcome
+                    max_child_outcomes_satisfied = child_outcomes_satisfied
+                else:
+                    smach.logdebug("Skipping mapped outcome '%s' with fewer constraints." % container_outcome)
 
         # Check outcome callback
         if self._outcome_cb:
