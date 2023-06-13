@@ -2,6 +2,11 @@
 Changelog for package smach_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.2 (2023-06-13)
+------------------
+* Fix is_running behaviour in case of exception in the state `#50 <https://github.com/ros/executive_smach/issues/50>`_ 
+* Executing an empty Concurrence container hangs forever `#51 <https://github.com/ros/executive_smach/issues/51>`_
+
 2.5.1 (2023-02-15)
 ------------------
 * Fix: response_slots when action goal is lost `#64 <https://github.com/ros/executive_smach/issues/64>`  
