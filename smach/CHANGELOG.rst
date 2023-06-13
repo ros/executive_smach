@@ -2,6 +2,11 @@
 Changelog for package smach
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.3 (2023-06-13)
+------------------
+* Fix is_running behaviour in case of exception in the state `#50 <https://github.com/ros/executive_smach/issues/50>`_ 
+* Executing an empty Concurrence container hangs forever `#51 <https://github.com/ros/executive_smach/issues/51>`_
+
 2.0.2 (2023-06-13)
 ------------------
 * Fix: state.py Docstrings' @type descriptions `#59 <https://github.com/ros/executive_smach/issues/59>`_
