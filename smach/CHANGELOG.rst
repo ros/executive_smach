@@ -2,6 +2,11 @@
 Changelog for package smach
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.2 (2023-06-13)
+------------------
+* Fix: state.py Docstrings' @type descriptions `#59 <https://github.com/ros/executive_smach/issues/59>`_
+* Fix: Typo set_shutdown_cb() --> set_shutdown_check() `#56 <https://github.com/ros/executive_smach/issues/56>`_ 
+
 2.0.1 (2017-06-08)
 ------------------
 * [maintenance] Update maintainer. switching to package.xml format 2

@@ -2,6 +2,9 @@
 Changelog for package executive_smach
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.2 (2023-06-13)
+------------------
+
 2.0.1 (2017-06-08)
 ------------------
 * [fix] SimpleActionState will wait forever for a missing ActionServer `#41 <https://github.com/ros/executive_smach/pull/41>`_

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>smach</name>
-  <version>2.0.1</version>
+  <version>2.0.2</version>
   <description>
     SMACH is a task-level architecture for rapidly creating complex robot
     behavior. At its core, SMACH is a ROS-independent Python library to build

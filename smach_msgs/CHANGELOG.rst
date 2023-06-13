@@ -2,6 +2,9 @@
 Changelog for package smach_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.2 (2023-06-13)
+------------------
+
 2.0.1 (2017-06-08)
 ------------------
 * [maintenance] Update maintainer. switching to package.xml format 2
