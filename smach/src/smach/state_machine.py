@@ -1,6 +1,7 @@
 
 import threading
 import traceback
+import time
 from contextlib import contextmanager
 
 import smach
@@ -41,6 +42,7 @@ class StateMachine(smach.container.Container):
         
         # Properties
         self._state_transitioning_lock = threading.Lock()
+        self._state_executing_lock = threading.Lock()
 
         # Current state of the state machine
         self._is_running = False # True when a goal has been dispatched to and accepted by the state machine
@@ -364,7 +366,10 @@ class StateMachine(smach.container.Container):
             # Step through state machine
             while container_outcome is None and self._is_running and not smach.is_shutdown():
                 # Update the state machine
-                container_outcome = self._update_once()
+                with self._state_executing_lock:
+                    container_outcome = self._update_once()
+                # let's set_initial_state to update status
+                time.sleep(0.01)
 
             # Copy output keys
             self._copy_output_keys(self.userdata, parent_ud)
@@ -428,6 +433,16 @@ class StateMachine(smach.container.Container):
             self._initial_state_label = initial_states[0]
         # Set local userdata
         self.userdata.update(userdata)
+
+        with self._state_executing_lock:
+            # Set initial state
+            if self._initial_state_label not in self._states:
+                smach.logwarn("Try to set inital state '%s', but it does not exist. Available states are: %s" %
+                              (self._initial_state_label, list(self._states.keys())))
+            else:
+                self._set_current_state(self._initial_state_label)
+                # Call start callbacks
+                self.call_start_cbs()
 
     def get_active_states(self):
         return [str(self._current_label)]
