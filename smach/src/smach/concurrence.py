@@ -197,6 +197,10 @@ class Concurrence(smach.container.Container):
         """Overridden execute method.
         This starts all the threads.
         """
+        # Check if any states added
+        if len(self._states) == 0:
+            raise smach.InvalidStateError("No states was added to concurrence")
+
         # Clear the ready event
         self._ready_event.clear()
         
