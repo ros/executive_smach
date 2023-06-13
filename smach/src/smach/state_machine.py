@@ -361,16 +361,18 @@ class StateMachine(smach.container.Container):
             # Initialize container outcome
             container_outcome = None
 
-            # Step through state machine
-            while container_outcome is None and self._is_running and not smach.is_shutdown():
-                # Update the state machine
-                container_outcome = self._update_once()
+            try:
+                # Step through state machine
+                while container_outcome is None and self._is_running and not smach.is_shutdown():
+                    # Update the state machine
+                    container_outcome = self._update_once()
 
-            # Copy output keys
-            self._copy_output_keys(self.userdata, parent_ud)
+                # Copy output keys
+                self._copy_output_keys(self.userdata, parent_ud)
 
-            # We're no longer running
-            self._is_running = False
+            finally:
+                # We're no longer running
+                self._is_running = False
 
         return container_outcome
 

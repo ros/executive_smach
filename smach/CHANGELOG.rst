@@ -2,6 +2,12 @@
 Changelog for package smach
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.2 (2023-06-13)
+------------------
+* Fix outcome_map disambiguation for Concurrence `#80 <https://github.com/ros/executive_smach/issues/80>`_
+* Fix is_running behaviour in case of exception in the state `#50 <https://github.com/ros/executive_smach/issues/50>`_ 
+* Executing an empty Concurrence container hangs forever `#51 <https://github.com/ros/executive_smach/issues/51>`_
+
 2.5.1 (2023-02-15)
 ------------------
 * Fix: state machines cannot be pickled `#86 <https://github.com/ros/executive_smach/issues/86>`  

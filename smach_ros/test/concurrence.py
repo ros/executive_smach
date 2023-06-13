@@ -122,6 +122,13 @@ class TestStateMachine(unittest.TestCase):
         assert cc.userdata.a == 'A'
         assert cc.userdata.b == 'A'
 
+    def test_empty_concurrence(self):
+        """Test behavior of a container with no states"""
+        cc = Concurrence(['done'], default_outcome='done')
+
+        with self.assertRaises(InvalidStateError):
+            cc.execute()
+
 def main():
     rospy.init_node('concurrence_test',log_level=rospy.DEBUG)
     rostest.rosrun('smach', 'concurrence_test', TestStateMachine)
