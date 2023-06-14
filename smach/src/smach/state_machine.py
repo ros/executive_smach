@@ -321,7 +321,7 @@ class StateMachine(smach.container.Container):
         return None
 
     ### State Interface
-    def execute(self, parent_ud = smach.UserData()):
+    def execute(self, parent_ud = None):
         """Run the state machine on entry to this state.
         This will set the "closed" flag and spin up the execute thread. Once
         this flag has been set, it will prevent more states from being added to

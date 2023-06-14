@@ -135,7 +135,7 @@ class Iterator(smach.container.Container):
         self._final_outcome_map = final_outcome_map
 
     ### State interface
-    def execute(self, parent_ud):
+    def execute(self, parent_ud = None):
         self._is_running = True
 
         # Copy input keys
