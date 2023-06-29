@@ -7,7 +7,7 @@ package_name = 'smach'
 
 setup(
     name=package_name,
-    version='3.0.1',
+    version='3.0.2',
     packages=[package_name],
     install_requires=['setuptools'],
     zip_safe=True,
