@@ -276,6 +276,15 @@ class Concurrence(smach.container.Container):
             if children_preempts_serviced:
                 smach.loginfo("Concurrence serviced preempt.")
                 self.service_preempt()
+                # Cleanup and return preempted
+                outcome = 'preempted'
+                self._threads = {}
+                self._child_outcomes = {}
+                # Call termination callbacks
+                self.call_termination_cbs(list(self._states.keys()), outcome)
+                # Copy output keys
+                self._copy_output_keys(self.userdata, parent_ud)
+                return outcome
 
         # Spew some debyg info
         smach.loginfo("Concurrent Outcomes: "+str(self._child_outcomes))
