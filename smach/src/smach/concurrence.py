@@ -193,7 +193,7 @@ class Concurrence(smach.container.Container):
         return state
 
     ### State interface
-    def execute(self, parent_ud = smach.UserData()):
+    def execute(self, parent_ud = None):
         """Overridden execute method.
         This starts all the threads.
         """
