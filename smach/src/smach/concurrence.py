@@ -66,13 +66,13 @@ class Concurrence(smach.container.Container):
         @type outcome_map: list
         @param outcome_map: This is an outcome map for determining the
         outcome of this container. Each outcome of the container is mapped
-        to a dictionary mapping child labels onto outcomes. If none of the
+        to a list containing dictionaries mapping child labels onto outcomes. If none of the
         child-outcome maps is satisfied, the concurrence will terminate
-        with thhe default outcome.
+        with the default outcome.
         
         For example, if the and_outcome_map is:
-            {'succeeded' : {'FOO':'succeeded', 'BAR':'done'},
-             'aborted' : {'FOO':'aborted'}}
+            {'succeeded' : [{'FOO':'succeeded'}, {'BAR':'done'}],
+             'aborted' : [{'FOO':'aborted'}]}
         Then the concurrence will terimate with outcome 'succeeded' only if
         BOTH states 'FOO' and 'BAR' have terminated
         with outcomes 'succeeded' and 'done', respectively. The outcome
@@ -285,10 +285,13 @@ class Concurrence(smach.container.Container):
 
         # Determine the outcome from the outcome map
         smach.logdebug("SMACH Concurrence determining contained state outcomes.")
-        for (container_outcome, outcomes) in ((k,self._outcome_map[k]) for k in self._outcome_map):
-            if all([self._child_outcomes[label] == outcomes[label] for label in outcomes]):
-                smach.logdebug("Terminating concurrent split with mapped outcome.")
-                outcome = container_outcome
+        for (container_outcome, outcomes_list) in ((k,self._outcome_map[k]) for k in self._outcome_map):
+            if not isinstance(outcomes_list, list):
+                outcomes_list = [outcomes_list]
+            for outcomes in outcomes_list:
+                if all([self._child_outcomes[label] == outcomes[label] for label in outcomes]):
+                    smach.logdebug("Terminating concurrent split with mapped outcome.")
+                    outcome = container_outcome
 
         # Check outcome callback
         if self._outcome_cb:
@@ -395,16 +398,22 @@ class Concurrence(smach.container.Container):
 
     def get_internal_edges(self):
         int_edges = []
-        for (container_outcome, outcomes) in ((k,self._outcome_map[k]) for k in self._outcome_map):
-            for state_key in outcomes:
-                int_edges.append((outcomes[state_key], state_key, container_outcome))
+        for (container_outcome, outcomes_list) in ((k,self._outcome_map[k]) for k in self._outcome_map):
+            if not isinstance(outcomes_list, list):
+                outcomes_list = [outcomes_list]
+            for outcomes in outcomes_list:
+                for state_key in outcomes:
+                    int_edges.append((outcomes[state_key], state_key, container_outcome))
         return int_edges
 
     def check_consistency(self):
-        for (co,cso) in ((k,self._outcome_map[k]) for k in self._outcome_map):
-            for state_label,outcome in ((k,cso[k]) for k in cso):
-                if outcome not in self._states[state_label].get_registered_outcomes():
-                    raise smach.InvalidTransitionError(
-                            'Outcome map in SMACH Concurrence references a state outcome that does not exist. Requested state outcome: \'%s\', but state \'%s\' only has outcomes %s' %
-                            (outcome, state_label, str(self._states[state_label].get_registered_outcomes())))
+        for (co,outcomes_list) in ((k,self._outcome_map[k]) for k in self._outcome_map):
+            if not isinstance(outcomes_list, list):
+                outcomes_list = [outcomes_list]
+            for cso in outcomes_list:
+                for state_label,outcome in ((k,cso[k]) for k in cso):
+                    if outcome not in self._states[state_label].get_registered_outcomes():
+                        raise smach.InvalidTransitionError(
+                                'Outcome map in SMACH Concurrence references a state outcome that does not exist. Requested state outcome: \'%s\', but state \'%s\' only has outcomes %s' %
+                                (outcome, state_label, str(self._states[state_label].get_registered_outcomes())))
 
