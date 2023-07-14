@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>smach</name>
-  <version>3.0.2</version>
+  <version>3.0.3</version>
   <description>
     SMACH is a task-level architecture for rapidly creating complex robot
     behavior. At its core, SMACH is a ROS-independent Python library to build

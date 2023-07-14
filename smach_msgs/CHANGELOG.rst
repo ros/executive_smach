@@ -2,6 +2,10 @@
 Changelog for package smach_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.3 (2023-07-14)
+------------------
+* Fix: Buildfarm issue https://github.com/ros/executive_smach/issues/111
+
 3.0.2 (2023-06-29)
 ------------------
 
