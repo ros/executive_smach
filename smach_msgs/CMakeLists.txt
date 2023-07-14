@@ -3,9 +3,7 @@ cmake_minimum_required(VERSION 3.22)
 project(smach_msgs)
 
 set(AMENT_DEPS
-  ament_cmake
-  ament_cmake_flake8
-  ament_cmake_pep257)
+  ament_cmake)
 foreach(dep IN ITEMS ${AMENT_DEPS})
   find_package(${dep} REQUIRED)
 endforeach()
