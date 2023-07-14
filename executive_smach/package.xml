@@ -7,7 +7,7 @@
     This metapackage depends on the SMACH library and ROS SMACH integration
     packages.
   </description>
-  <maintainer email="gm130s@gmail.com">Isaac I. Y. Saito</maintainer>
+  <maintainer email="iisaac.saito@gmail.com">Isaac Saito</maintainer>
   <license>BSD</license>
 
   <url>http://ros.org/wiki/smach</url>
