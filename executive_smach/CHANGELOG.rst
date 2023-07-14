@@ -2,6 +2,10 @@
 Changelog for package executive_smach
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.3 (2023-07-14)
+------------------
+* Fix: Buildfarm issue https://github.com/ros/executive_smach/issues/111
+
 3.0.2 (2023-06-29)
 ------------------
 * Fix `#92 <https://github.com/ros/executive_smach/issues/92>`_ 
