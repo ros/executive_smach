@@ -16,6 +16,9 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_cppcheck</buildtool_depend>
+  <!-- ament_cmake_{flake8, pep257} are added to workaround https://github.com/ros2/rosidl_python/issues/198 -->
+  <buildtool_depend>ament_cmake_flake8</buildtool_depend>
+  <buildtool_depend>ament_cmake_pep257</buildtool_depend>  
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
 
   <build_depend>builtin_interfaces</build_depend>
