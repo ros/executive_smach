@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import rclpy
-import rclpy.time
 from rclpy.duration import Duration
 import rclpy.action
 from rclpy.action.client import GoalStatus
@@ -236,8 +235,7 @@ class SimpleActionState(RosState):
             try:
                 # Check for preemption while checking for timeout
                 if self.preempt_requested():
-                    self.node.get_logger().info(
-                        f"Preempting while waiting for goal (request) result '{self._action_name}'.")
+                    self.node.get_logger().info(f"Preempting while waiting for goal (request) result '{self._action_name}'.")
                     self._status = ActionState.CANCELED
                     with self._done_cond:
                         self._done_cond.notify()
@@ -418,9 +416,6 @@ class SimpleActionState(RosState):
             if self.preempt_requested():
                 self.service_preempt()
             outcome = 'preempted'
-        elif self._status == ActionState.INACTIVE:
-            # Aborted via execution timeout
-            outcome = 'aborted'
         elif self._status == ActionState.CANCELING:
             # Preempting or exec timeout but goal not cancelled
             outcome = 'aborted'
