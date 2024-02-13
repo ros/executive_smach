@@ -250,7 +250,7 @@ class SimpleActionState(RosState):
                 time.sleep(0.1)
             except Exception as e:
                 self.node.get_logger().error(
-                    f"Caught exception: {str(e)} Failed to sleep while running '{self._action_name}'")
+                    f"Caught exception: {str(e)}. Failed to sleep while running '{self._action_name}'")
                 break
 
     # Smach State API
@@ -476,8 +476,7 @@ class SimpleActionState(RosState):
             else:
                 return 'UNKNOWN (' + str(i) + ')'
 
-        if future.done():
-            goal_result = future.result()
+        goal_result = future.result()
 
         # Calculate duration
         self._duration = self.node.get_clock().now() - self._activate_time
