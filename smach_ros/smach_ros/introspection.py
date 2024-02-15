@@ -24,14 +24,6 @@ STRUCTURE_TOPIC = '/smach/container_structure'
 class IntrospectionClient(Node):
     def __init__(self, node_name='introspection_client', **kwargs):
         Node.__init__(self, node_name, **kwargs)
-        self._executor = SingleThreadedExecutor()
-        self._executor.add_node(self)
-        self._spinner = threading.Thread(target=self._executor.spin)
-        self._spinner.start()
-
-    def __del__(self):
-        self._executor.shutdown()
-        self._spinner.join()
 
     def get_servers(self):
         """Get the base names that are broadcasting smach states."""
@@ -276,15 +268,6 @@ class IntrospectionServer(Node):
         self._server_name = server_name
         self._state = state
         self._path = path
-
-        self._executor = SingleThreadedExecutor()
-        self._executor.add_node(self)
-        self._spinner = threading.Thread(target=self._executor.spin)
-        self._spinner.start()
-
-    def __del__(self):
-        self._executor.shutdown()
-        self._spinner.join()
 
     def start(self):
         # Construct proxies
