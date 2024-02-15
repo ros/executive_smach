@@ -248,7 +248,7 @@ class SimpleActionState(RosState):
                     with self._done_cond:
                         self._done_cond.notify()
                 time.sleep(0.1)
-            except Exception as e:
+            except (RuntimeError, TypeError) as e:
                 self.node.get_logger().error(
                     f"Caught exception: {str(e)}. Failed to sleep while running '{self._action_name}'")
                 break
