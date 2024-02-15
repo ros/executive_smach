@@ -243,7 +243,7 @@ class SimpleActionState(RosState):
                     self.node.get_logger().warn(
                         f"Action {self._action_name} timed out after {self._exec_timeout.nanoseconds / 1e9} seconds. "
                         f"Trying to cancel goal with timeout {self._preempt_timeout.nanoseconds / 1e9}.")
-                    self._status = self.__cancel_goal_and_wait(
+                    self._status = self._cancel_goal_and_wait(
                         timeout=self._preempt_timeout)
                     with self._done_cond:
                         self._done_cond.notify()
@@ -264,11 +264,11 @@ class SimpleActionState(RosState):
             self.node.get_logger().info(
                 f"Preempt on action '{self._action_name}' trying to cancel goal: {self._client_goal_handle} "
                 f"with timeout {self._preempt_timeout.nanoseconds / 1e9}")
-            self._status = self.__cancel_goal_and_wait(self._preempt_timeout)
+            self._status = self._cancel_goal_and_wait(self._preempt_timeout)
             with self._done_cond:
                 self._done_cond.notify()
 
-    def __cancel_goal_and_wait(self, timeout) -> ActionState:
+    def _cancel_goal_and_wait(self, timeout) -> ActionState:
         """Cancel goal and wait for the result."""
         if self._client_goal_handle is not None:
             self._cancel_goal()
