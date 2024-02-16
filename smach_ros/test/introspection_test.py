@@ -6,10 +6,8 @@ import threading
 
 import unittest
 
-from smach import *
-from smach_ros import *
-
-from smach_msgs.msg import *
+from smach import StateMachine, UserData
+from smach_ros import RosState, IntrospectionServer, IntrospectionClient
 
 ### Custom state classe
 class Setter(RosState):
@@ -110,9 +108,11 @@ class TestIntrospection(unittest.TestCase):
         node.get_logger().info("Client destroyed")
         intro_server.destroy_node()
         node.get_logger().info("Server destroyed")
-        #executor.shutdown()
-        #spinner.join()
+
+        executor.shutdown()
         node.destroy_node()
+        spinner.join()
+
 
 def main():
     rclpy.init()
