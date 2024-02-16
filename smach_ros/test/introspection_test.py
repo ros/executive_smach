@@ -41,8 +41,6 @@ class TestIntrospection(unittest.TestCase):
         node = rclpy.create_node("sm_node")
         node.get_logger().set_level(rclpy.logging.LoggingSeverity.DEBUG)
         executor = SingleThreadedExecutor()
-        def spin():
-            rclpy.spin(node, executor=executor)
 
         # Construct state machine
         sm = StateMachine(['done'])
@@ -67,12 +65,21 @@ class TestIntrospection(unittest.TestCase):
         # Run introspector
         intro_server = IntrospectionServer('intro_test', sm, '/intro_test')
         intro_server.get_logger().set_level(rclpy.logging.LoggingSeverity.DEBUG)
-        server_thread = threading.Thread(target=intro_server.start)
-        server_thread.start()
+        intro_server.start()
 
         intro_client = IntrospectionClient()
         intro_client.get_logger().set_level(rclpy.logging.LoggingSeverity.DEBUG)
         servers = intro_client.get_servers()
+
+        executor.add_node(node)
+        executor.add_node(intro_server)
+        executor.add_node(intro_client)
+
+        def spin(executor):
+            executor.spin()
+
+        spinner = threading.Thread(target=spin, args=(executor,))
+        spinner.start()
 
         rate = intro_client.create_rate(10)
         while '/intro_test' not in servers and rclpy.ok():
@@ -92,9 +99,6 @@ class TestIntrospection(unittest.TestCase):
             timeout = rclpy.time.Duration(seconds=10.0))
 
         assert init_set
-
-        spinner = threading.Thread(target=spin)
-        spinner.start()
 
         outcome = sm.execute()
 
