@@ -270,8 +270,8 @@ class IntrospectionServer(Node):
         self._path = path
 
     def start(self):
-            # Construct proxies
-            self.construct(self._server_name, self._state, self._path)
+        # Construct proxies
+        self.construct(self._server_name, self._state, self._path)
 
     def stop(self):
         for proxy in self._proxies:
