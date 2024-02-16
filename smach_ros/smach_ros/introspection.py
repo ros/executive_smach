@@ -2,7 +2,6 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.clock import ROSClock
-from rclpy.executors import SingleThreadedExecutor
 from std_msgs.msg import Header
 
 import base64
