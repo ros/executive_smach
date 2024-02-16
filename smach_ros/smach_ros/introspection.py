@@ -5,6 +5,7 @@ from rclpy.clock import ROSClock
 from std_msgs.msg import Header
 
 import base64
+import time
 import pickle
 import threading
 from functools import partial
@@ -91,13 +92,11 @@ class IntrospectionClient(Node):
                 1)
         init_pub.publish(initial_status_msg)
 
-        clock = ROSClock()
-        rate = self.create_rate(4, clock)
-        start_time = clock.now()
+        start_time = self.get_clock().now()
 
         # Block until we get a new state back
         if timeout is not None:
-            while clock.now() - start_time < timeout:
+            while self.get_clock().now() - start_time < timeout:
                 # Send the initial state command
                 init_pub.publish(initial_status_msg)
 
@@ -115,7 +114,7 @@ class IntrospectionClient(Node):
 
                     if state_match and ud_match:
                         return True
-                rate.sleep()
+                time.sleep(0.25)
             return False
 
 class ContainerProxy():
@@ -207,15 +206,15 @@ class ContainerProxy():
         with self._status_pub_lock:
             path = self._path
 
-            #print str(structure_msg)
-            # Construct status message
-            #print self._container.get_active_states()
+            # Transform userdata to dictionary for pickling
+            keys = list(self._container.userdata.keys())
+            data = {key: self._container.userdata[key] for key in keys}
             state_msg = SmachContainerStatus(
                     header=Header(stamp = ROSClock().now().to_msg()),
                     path=path,
                     initial_states=self._container.get_initial_states(),
                     active_states=self._container.get_active_states(),
-                    local_data=base64.b64encode(pickle.dumps(self._container.userdata._data, 2)),
+                    local_data=base64.b64encode(pickle.dumps(data, 2)),
                     info=info_str)
             # Publish message
             self._status_pub.publish(state_msg)
