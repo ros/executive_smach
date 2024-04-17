@@ -7,30 +7,33 @@ import traceback
 import copy
 
 from actionlib.simple_action_client import SimpleActionClient, GoalStatus
+from enum import Enum
 
 import smach
 from smach.state import *
 
 __all__ = ['SimpleActionState']
 
-class SimpleActionState(State):
-    """Simple action client state.
-    
-    Use this class to represent an actionlib as a state in a state machine.
-    """
-
-    # Meta-states for this action
+class ActionState(Enum):
+# Meta-states for this action
     WAITING_FOR_SERVER = 0
     INACTIVE = 1
     ACTIVE = 2
-    PREEMPTING = 3
-    COMPLETED = 4
+    CANCELING = 3
+    CANCELED = 4
+    COMPLETED = 5
+
+class SimpleActionState(State):
+    """Simple action client state.
+
+    Use this class to represent an actionlib as a state in a state machine.
+    """
 
     def __init__(self,
             # Action info
             action_name,
-            action_spec, 
-            # Default goal 
+            action_spec,
+            # Default goal
             goal = None,
             goal_key = None,
             goal_slots = [],
@@ -46,14 +49,14 @@ class SimpleActionState(State):
             # Keys
             input_keys = [],
             output_keys = [],
-            outcomes = [],
+            outcomes = ['succeeded', 'aborted', 'preempted'],
             # Timeouts
-            exec_timeout = None,
-            preempt_timeout = rospy.Duration(60.0),
-            server_wait_timeout = rospy.Duration(60.0)
+            exec_timeout:rospy.Duration = None,
+            preempt_timeout:rospy.Duration = rospy.Duration(60.0),
+            server_wait_timeout:rospy.Duration = rospy.Duration(60.0)
             ):
         """Constructor for SimpleActionState action client wrapper.
-        
+
         @type action_name: string
         @param action_name: The name of the action as it will be broadcast over ros.
 
@@ -70,7 +73,7 @@ class SimpleActionState(State):
 
         @type goal_slots: list of string
         @param goal_slots: Pull the goal fields (__slots__) from like-named
-        keys in userdata. This will be done before calling the goal_cb if 
+        keys in userdata. This will be done before calling the goal_cb if
         goal_cb is defined.
 
         @type goal_cb: callable
@@ -103,7 +106,7 @@ class SimpleActionState(State):
         @type exec_timeout: C{rospy.Duration}
         @param exec_timeout: This is the timeout used for sending a preempt message
         to the delegate action. This is C{None} by default, which implies no
-        timeout. 
+        timeout.
 
         @type preempt_timeout: C{rospy.Duration}
         @param preempt_timeout: This is the timeout used for aborting after a
@@ -116,7 +119,7 @@ class SimpleActionState(State):
         """
 
         # Initialize base class
-        State.__init__(self, outcomes=['succeeded','aborted','preempted'])
+        State.__init__(self, outcomes=outcomes)
 
         # Set action properties
         self._action_name = action_name
@@ -134,7 +137,7 @@ class SimpleActionState(State):
             raise smach.InvalidStateError("Goal object given to SimpleActionState that IS a function object")
         sl = action_spec().action_goal.goal.__slots__
         if not all([s in sl for s in goal_slots]):
-            raise smach.InvalidStateError("Goal slots specified are not valid slots. Available slots: %s; specified slots: %s" % (sl, goal_slots))
+            raise smach.InvalidStateError(f"Goal slots specified are not valid slots. Available slots: {sl}; specified slots: {goal_slots}")
         if goal_cb and not hasattr(goal_cb, '__call__'):
             raise smach.InvalidStateError("Goal callback object given to SimpleActionState that IS NOT a function object")
 
@@ -207,9 +210,8 @@ class SimpleActionState(State):
 
         # Declare some status variables
         self._activate_time = rospy.Time.now()
-        self._preempt_time = rospy.Time.now()
         self._duration = rospy.Duration(0.0)
-        self._status = SimpleActionState.WAITING_FOR_SERVER
+        self._status = ActionState.WAITING_FOR_SERVER
 
         # Construct action client, and wait for it to come active
         self._action_client = SimpleActionClient(action_name, action_spec)
@@ -225,39 +227,75 @@ class SimpleActionState(State):
         """Internal method for waiting for the action server
         This is run in a separate thread and allows construction of this state
         to not block the construction of other states.
-        """        
+        """
         timeout_time = rospy.get_rostime() + self._server_wait_timeout
-        while self._status == SimpleActionState.WAITING_FOR_SERVER and not rospy.is_shutdown() and not rospy.get_rostime() >= timeout_time:
+        while self._status == ActionState.WAITING_FOR_SERVER and not rospy.is_shutdown() and not rospy.get_rostime() >= timeout_time:
             try:
                 if self._action_client.wait_for_server(rospy.Duration(1.0)):#self._server_wait_timeout):
-                    self._status = SimpleActionState.INACTIVE
+                    self._status = ActionState.INACTIVE
                 if self.preempt_requested():
                     return
-            except:
+            except Exception as e:
                 if not rospy.core._in_shutdown: # This is a hack, wait_for_server should not throw an exception just because shutdown was called
-                    rospy.logerr("Failed to wait for action server '%s'" % (self._action_name))
+                    rospy.logerr(f"Caught exception: {str(e)} Failed to wait for action server {self._action_name}")
 
     def _execution_timer(self):
         """Internal method for cancelling a timed out goal after a timeout."""
-        while self._status == SimpleActionState.ACTIVE and not rospy.is_shutdown():
+        rospy.logdebug(
+            f"Starting execution timer for action '{self._action_name}' "
+            f"with timeout {self._exec_timeout.to_sec()} seconds."
+        )
+        while self._status == ActionState.ACTIVE and not rospy.is_shutdown():
             try:
+                # Check for preemption while checking for timeout
+                if self.preempt_requested():
+                    rospy.loginfo(f"Preempting while waiting for goal (request) result '{self._action_name}'.")
+                    self._status = ActionState.CANCELED
+                    with self._done_cond:
+                        self._done_cond.notify()
+                if rospy.Time.now() - self._activate_time > self._exec_timeout:
+                    rospy.logwarn(
+                        f"Action {self._action_name} timed out after {self._exec_timeout.to_sec()} seconds. "
+                        f"Trying to cancel goal with timeout {self._preempt_timeout.to_sec()}.")
+                    self._status = self._cancel_goal_and_wait(
+                        timeout=self._preempt_timeout)
+                    with self._done_cond:
+                        self._done_cond.notify()
                 rospy.sleep(0.1)
-            except:
-                if not rospy.is_shutdown():
-                    rospy.logerr("Failed to sleep while running '%s'" % self._action_name)
-            if rospy.Time.now() - self._activate_time > self._exec_timeout:
-                rospy.logwarn("Action %s timed out after %d seconds." % (self._action_name, self._exec_timeout.to_sec()))
-                # Cancel the goal
-                self._action_client.cancel_goal()
+            except (RuntimeError, TypeError) as e:
+                rospy.logerr(
+                    f"Caught exception: {str(e)}. Failed to sleep while running '{self._action_name}'")
+                break
 
     ### smach State API
     def request_preempt(self):
-        rospy.loginfo("Preempt requested on action '%s'" % (self._action_name))
+        rospy.loginfo(f"Preempt requested on action '{self._action_name}'")
         smach.State.request_preempt(self)
-        if self._status == SimpleActionState.ACTIVE:
-            rospy.loginfo("Preempt on action '%s' cancelling goal: \n%s" % (self._action_name, str(self._goal)))
-            # Cancel the goal
-            self._action_client.cancel_goal()
+        if self._status == ActionState.ACTIVE:
+            rospy.loginfo(
+                f"Preempt on action '{self._action_name}' trying to cancel goal: {self._goal} "
+                f"with timeout {self._preempt_timeout.to_sec()}")
+            self._status = self._cancel_goal_and_wait(self._preempt_timeout)
+            with self._done_cond:
+                self._done_cond.notify()
+
+    def _cancel_goal_and_wait(self, timeout) -> ActionState:
+        """Cancel goal and wait for the result."""
+        # Cancel the goal
+        rospy.loginfo("Cancelling goal")
+        self._action_client.cancel_goal()
+        self._cancel_activation_time = rospy.Time.now()
+
+        while (rospy.Time.now() - self._cancel_activation_time) <= timeout and not rospy.is_shutdown():
+            if self._goal_status == GoalStatus.PREEMPTED:
+                rospy.loginfo(
+                    f"Preempt on action '{self._action_name}'. Goal cancel succeeded within timeout .")
+                return ActionState.CANCELED
+            rospy.sleep(0.1)
+
+        rospy.logwarn(
+            f"Preempt on action '{self._action_name}' Goal cancel failed within timeout.")
+        return ActionState.CANCELING
 
     def execute(self, ud):
         """Called when executing a state.
@@ -266,8 +304,8 @@ class SimpleActionState(State):
         """
 
         # Make sure we're connected to the action server
-        if self._status is SimpleActionState.WAITING_FOR_SERVER:
-            rospy.logwarn("Still waiting for action server '%s' to start... is it running?" % self._action_name)
+        if self._status is ActionState.WAITING_FOR_SERVER:
+            rospy.logwarn(f"Still waiting for action server '{self._action_name}' to start... is it running?")
             if self._action_wait_thread.is_alive():
                 # Block on joining the server wait thread (This can be preempted)
                 self._action_wait_thread.join()
@@ -277,20 +315,20 @@ class SimpleActionState(State):
 
             if not self.preempt_requested():
                 # In case of preemption we probably didn't connect
-                rospy.loginfo("Connected to action server '%s'." % self._action_name)
+                rospy.loginfo(f"Connected to action server '{self._action_name}'.")
 
         # Check for preemption before executing
         if self.preempt_requested():
-            rospy.loginfo("Preempting %s before sending goal." % self._action_name)
+            rospy.loginfo(f"Preempting '{self._action_name}' before sending goal.")
             self.service_preempt()
             return 'preempted'
 
         # We should only get here if we have connected to the server
-        if self._status is SimpleActionState.WAITING_FOR_SERVER:
-            rospy.logfatal("Action server for "+self._action_name+" is not running.")
+        if self._status is ActionState.WAITING_FOR_SERVER:
+            rospy.logfatal(f"Action server for '{self._action_name}' is not running.")
             return 'aborted'
         else:
-            self._status = SimpleActionState.INACTIVE
+            self._status = ActionState.INACTIVE
 
         # Grab goal key, if set
         if self._goal_key is not None:
@@ -315,29 +353,29 @@ class SimpleActionState(State):
                 if goal_update is not None:
                     self._goal = goal_update
             except:
-                rospy.logerr("Could not execute goal callback: "+traceback.format_exc())
+                rospy.logerr(f"Could not execute goal callback: {traceback.format_exc()}")
                 return 'aborted'
-            
+
         # Make sure the necessary paramters have been set
         if self._goal is None and self._goal_cb is None:
-            rospy.logerr("Attempting to activate action "+self._action_name+" with no goal or goal callback set. Did you construct the SimpleActionState properly?")
+            rospy.logerr(f"Attempting to activate action '{self._action_name}' with no goal or goal callback set. Did you construct the SimpleActionState properly?")
             return 'aborted'
 
         # Dispatch goal via non-blocking call to action client
         self._activate_time = rospy.Time.now()
-        self._status = SimpleActionState.ACTIVE
+        self._status = ActionState.ACTIVE
 
         # Wait on done condition
-        self._done_cond.acquire()
-        self._action_client.send_goal(self._goal, self._goal_done_cb, self._goal_active_cb, self._goal_feedback_cb)
+        with self._done_cond:
+            self._action_client.send_goal(self._goal, self._goal_done_cb, self._goal_active_cb, self._goal_feedback_cb)
 
-        # Preempt timeout watch thread
-        if self._exec_timeout:
-            self._execution_timer_thread = threading.Thread(name=self._action_name+'/preempt_watchdog', target=self._execution_timer)
-            self._execution_timer_thread.start()
+            # Preempt timeout watch thread
+            if self._exec_timeout:
+                self._execution_timer_thread = threading.Thread(name=self._action_name+'/preempt_watchdog', target=self._execution_timer)
+                self._execution_timer_thread.start()
 
-        # Wait for action to finish
-        self._done_cond.wait()
+            # Wait for action to finish
+            self._done_cond.wait()
 
         # Call user result callback if defined
         result_cb_outcome = None
@@ -352,10 +390,13 @@ class SimpleActionState(State):
                         self._goal_status,
                         self._goal_result)
                 if result_cb_outcome is not None and result_cb_outcome not in self.get_registered_outcomes():
-                    rospy.logerr("Result callback for action "+self._action_name+", "+str(self._result_cb)+" was not registered with the result_cb_outcomes argument. The result callback returned '"+str(result_cb_outcome)+"' but the only registered outcomes are: "+str(self.get_registered_outcomes()))
+                    rospy.logerr(f"Result callback for action {self._action_name}, {self._result_cb} was not registered with "
+                                 f"the result_cb_outcomes argument. The result callback returned '{result_cb_outcome}' "
+                                 f"but the only registered outcomes are: {self.get_registered_outcomes()}")
                     return 'aborted'
-            except:
-                rospy.logerr("Could not execute result callback: "+traceback.format_exc())
+            except Exception as e:
+                rospy.logerr(
+                    f"Caught exception: {str(e)} Could not execute result callback: {traceback.format_exc()}. Aborting")
                 return 'aborted'
 
         if self._result_key is not None:
@@ -366,21 +407,27 @@ class SimpleActionState(State):
             for key in self._result_slots:
                 ud[key] = getattr(self._goal_result, key)
 
-        # Check status
-        if self._status == SimpleActionState.INACTIVE:
-            # Set the outcome on the result state
-            if self._goal_status == GoalStatus.SUCCEEDED:
-                outcome = 'succeeded'
-            elif self._goal_status == GoalStatus.PREEMPTED and self.preempt_requested():
-                outcome = 'preempted'
+        # Check for preemption after executing
+        if self.preempt_requested():
+            rospy.loginfo(f"Preempting {self._action_name} after goal.")
+            self.service_preempt()
+            return 'preempted'
+
+        # Check status and set the outcome to the result state
+        if self._status == ActionState.COMPLETED:
+            # Goal request and result are succeeded
+            outcome = 'succeeded'
+        elif self._status == ActionState.CANCELED:
+            # Preempted or goal cancelled
+            if self.preempt_requested():
                 self.service_preempt()
-            else:
-                # All failures at this level are captured by aborting, even if we timed out
-                # This is an important distinction between local preemption, and preemption
-                # from above.
-                outcome = 'aborted'
+            outcome = 'preempted'
+        elif self._status == ActionState.CANCELING:
+            # Preempting or exec timeout but goal not cancelled
+            outcome = 'aborted'
         else:
-            # We terminated without going inactive
+            # All failures at this level are captured by aborting, even if we
+            # timed out
             rospy.logwarn("Action state terminated without going inactive first.")
             outcome = 'aborted'
 
@@ -389,8 +436,7 @@ class SimpleActionState(State):
             outcome = result_cb_outcome
 
         # Set status inactive
-        self._status = SimpleActionState.INACTIVE
-        self._done_cond.release()
+        self._status = ActionState.INACTIVE
 
         return outcome
 
@@ -399,11 +445,11 @@ class SimpleActionState(State):
         """Goal Active Callback
         This callback starts the timer that watches for the timeout specified for this action.
         """
-        rospy.logdebug("Action "+self._action_name+" has gone active.")
+        rospy.logdebug(f"Action {self._action_name} has gone active.")
 
     def _goal_feedback_cb(self, feedback):
         """Goal Feedback Callback"""
-        rospy.logdebug("Action "+self._action_name+" sent feedback.")
+        rospy.logdebug(f"Action {self._action_name} sent feedback.")
 
     def _goal_done_cb(self, result_state, result):
         """Goal Done Callback
@@ -416,22 +462,28 @@ class SimpleActionState(State):
             if i < len(strs):
                 return strs[i]
             else:
-                return 'UNKNOWN ('+str(i)+')'
+                return f'UNKNOWN ({str(i)})'
 
         # Calculate duration
         self._duration = rospy.Time.now() - self._activate_time
-        rospy.logdebug("Action "+self._action_name+" terminated after "\
-                +str(self._duration.to_sec())+" seconds with result "\
-                +get_result_str(self._action_client.get_state())+".")
+        rospy.logdebug(f"Action {self._action_name} terminated after "
+                f"{self._duration.to_sec()} seconds with result "
+                f"{get_result_str(self._action_client.get_state())}.")
 
         # Store goal state
         self._goal_status = result_state
         self._goal_result = result
 
-        # Rest status
-        self._status = SimpleActionState.INACTIVE
+        # Update status
+        if self._goal_status == GoalStatus.SUCCEEDED:
+            self._status = ActionState.COMPLETED
+        elif self._goal_status == GoalStatus.PREEMPTED:
+            self._status = ActionState.CANCELED
+        elif self._goal_status == GoalStatus.ABORTED:
+            self._status = ActionState.CANCELED
+
+        rospy.logdebug(f"Goal completed: {self._goal}")
 
         # Notify done
-        self._done_cond.acquire()
-        self._done_cond.notify()
-        self._done_cond.release()
+        with self._done_cond:
+            self._done_cond.notify()
