@@ -253,6 +253,30 @@ class TestActionlib(unittest.TestCase):
 
         sq_outcome = sq.execute()
 
+    def test_action_client_preempt_timeout(self):
+        """Test action client execution and preemption timeout"""
+        sq = Sequence(['succeeded', 'aborted', 'preempted'], 'succeeded')
+
+        with sq:
+            Sequence.add(
+                'TEST_GOAL',
+                SimpleActionState(
+                    "test_action", TestAction,
+                    goal=g1,
+                    server_wait_timeout=rospy.Duration(1.0),
+                    exec_timeout=rospy.Duration(1.0),
+                    preempt_timeout=rospy.Duration(1.0)))
+
+        # Never succeeding action server
+        action_server = SimpleActionServer('test_action', TestAction, auto_start=False)
+        action_server.register_goal_callback(lambda : action_server.accept_new_goal())
+        action_server.register_preempt_callback(lambda: rospy.sleep(5.0))
+        action_server.start()
+
+        sq_outcome = sq.execute()
+
+        assert sq_outcome == 'aborted'
+
 
 def main():
     rospy.init_node('smach_actionlib', log_level=rospy.DEBUG)
