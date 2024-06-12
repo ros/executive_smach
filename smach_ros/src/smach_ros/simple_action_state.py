@@ -126,7 +126,7 @@ class SimpleActionState(State):
         self._action_spec = action_spec
 
         # Set timeouts
-        self._goal_status = 0
+        self._goal_status = GoalStatus.PENDING
         self._goal_result = None
         self._exec_timeout = exec_timeout
         self._preempt_timeout = preempt_timeout
@@ -364,6 +364,7 @@ class SimpleActionState(State):
         # Dispatch goal via non-blocking call to action client
         self._activate_time = rospy.Time.now()
         self._status = ActionState.ACTIVE
+        self._goal_status = GoalStatus.PENDING
 
         # Wait on done condition
         with self._done_cond:
@@ -446,6 +447,7 @@ class SimpleActionState(State):
         This callback starts the timer that watches for the timeout specified for this action.
         """
         rospy.logdebug(f"Action {self._action_name} has gone active.")
+        self._goal_status = GoalStatus.ACTIVE
 
     def _goal_feedback_cb(self, feedback):
         """Goal Feedback Callback"""
