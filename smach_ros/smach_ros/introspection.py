@@ -2,10 +2,10 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.clock import ROSClock
-from rclpy.executors import SingleThreadedExecutor
 from std_msgs.msg import Header
 
 import base64
+import time
 import pickle
 import threading
 from functools import partial
@@ -24,14 +24,6 @@ STRUCTURE_TOPIC = '/smach/container_structure'
 class IntrospectionClient(Node):
     def __init__(self, node_name='introspection_client', **kwargs):
         Node.__init__(self, node_name, **kwargs)
-        self._executor = SingleThreadedExecutor()
-        self._executor.add_node(self)
-        self._spinner = threading.Thread(target=self._executor.spin)
-        self._spinner.start()
-
-    def __del__(self):
-        self._executor.shutdown()
-        self._spinner.join()
 
     def get_servers(self):
         """Get the base names that are broadcasting smach states."""
@@ -73,7 +65,7 @@ class IntrospectionClient(Node):
         initial_status_msg = SmachContainerInitialStatusCmd(
                 path = path,
                 initial_states = initial_states,
-                local_data = bytearray(pickle.dumps(initial_userdata._data, 2)))
+                local_data = base64.b64encode(pickle.dumps(initial_userdata._data, 2)))
 
         # A status message to receive confirmation that the state was set properly
         msg_response = SmachContainerStatus()
@@ -100,13 +92,11 @@ class IntrospectionClient(Node):
                 1)
         init_pub.publish(initial_status_msg)
 
-        clock = ROSClock()
-        rate = self.create_rate(4, clock)
-        start_time = clock.now()
+        start_time = self.get_clock().now()
 
         # Block until we get a new state back
         if timeout is not None:
-            while clock.now() - start_time < timeout:
+            while self.get_clock().now() - start_time < timeout:
                 # Send the initial state command
                 init_pub.publish(initial_status_msg)
 
@@ -124,7 +114,7 @@ class IntrospectionClient(Node):
 
                     if state_match and ud_match:
                         return True
-                rate.sleep()
+                time.sleep(0.25)
             return False
 
 class ContainerProxy():
@@ -216,15 +206,15 @@ class ContainerProxy():
         with self._status_pub_lock:
             path = self._path
 
-            #print str(structure_msg)
-            # Construct status message
-            #print self._container.get_active_states()
+            # Transform userdata to dictionary for pickling
+            keys = list(self._container.userdata.keys())
+            data = {key: self._container.userdata[key] for key in keys}
             state_msg = SmachContainerStatus(
                     header=Header(stamp = ROSClock().now().to_msg()),
                     path=path,
                     initial_states=self._container.get_initial_states(),
                     active_states=self._container.get_active_states(),
-                    local_data=bytearray(pickle.dumps(self._container.userdata._data, 2)),
+                    local_data=base64.b64encode(pickle.dumps(data, 2)),
                     info=info_str)
             # Publish message
             self._status_pub.publish(state_msg)
@@ -249,7 +239,7 @@ class ContainerProxy():
         if msg.path == self._path:
             if all(s in self._container.get_children() for s in initial_states):
                 ud = smach.UserData()
-                ud._data = pickle.loads(msg.local_data)
+                ud._data = pickle.loads(base64.b64decode(msg.local_data))
                 self._server_node.get_logger().debug("Setting initial state in smach path: '"+self._path+"' to '"+str(initial_states)+"' with userdata: "+str(ud._data))
 
                 # Set the initial state
@@ -276,15 +266,6 @@ class IntrospectionServer(Node):
         self._server_name = server_name
         self._state = state
         self._path = path
-
-        self._executor = SingleThreadedExecutor()
-        self._executor.add_node(self)
-        self._spinner = threading.Thread(target=self._executor.spin)
-        self._spinner.start()
-
-    def __del__(self):
-        self._executor.shutdown()
-        self._spinner.join()
 
     def start(self):
         # Construct proxies

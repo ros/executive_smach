@@ -6,10 +6,8 @@ import threading
 
 import unittest
 
-from smach import *
-from smach_ros import *
-
-from smach_msgs.msg import *
+from smach import StateMachine, UserData
+from smach_ros import RosState, IntrospectionServer, IntrospectionClient
 
 ### Custom state classe
 class Setter(RosState):
@@ -41,8 +39,6 @@ class TestIntrospection(unittest.TestCase):
         node = rclpy.create_node("sm_node")
         node.get_logger().set_level(rclpy.logging.LoggingSeverity.DEBUG)
         executor = SingleThreadedExecutor()
-        def spin():
-            rclpy.spin(node, executor=executor)
 
         # Construct state machine
         sm = StateMachine(['done'])
@@ -67,12 +63,21 @@ class TestIntrospection(unittest.TestCase):
         # Run introspector
         intro_server = IntrospectionServer('intro_test', sm, '/intro_test')
         intro_server.get_logger().set_level(rclpy.logging.LoggingSeverity.DEBUG)
-        server_thread = threading.Thread(target=intro_server.start)
-        server_thread.start()
+        intro_server.start()
 
         intro_client = IntrospectionClient()
         intro_client.get_logger().set_level(rclpy.logging.LoggingSeverity.DEBUG)
         servers = intro_client.get_servers()
+
+        executor.add_node(node)
+        executor.add_node(intro_server)
+        executor.add_node(intro_client)
+
+        def spin(executor):
+            executor.spin()
+
+        spinner = threading.Thread(target=spin, args=(executor,))
+        spinner.start()
 
         rate = intro_client.create_rate(10)
         while '/intro_test' not in servers and rclpy.ok():
@@ -93,9 +98,6 @@ class TestIntrospection(unittest.TestCase):
 
         assert init_set
 
-        spinner = threading.Thread(target=spin)
-        spinner.start()
-
         outcome = sm.execute()
 
         assert outcome == 'done'
@@ -106,9 +108,11 @@ class TestIntrospection(unittest.TestCase):
         node.get_logger().info("Client destroyed")
         intro_server.destroy_node()
         node.get_logger().info("Server destroyed")
-        #executor.shutdown()
-        #spinner.join()
+
+        executor.shutdown()
         node.destroy_node()
+        spinner.join()
+
 
 def main():
     rclpy.init()
