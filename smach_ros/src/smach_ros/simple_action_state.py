@@ -303,6 +303,9 @@ class SimpleActionState(State):
         goal with a non-blocking call to the action client.
         """
 
+        # Ensure we start clean
+        self._preempt_requested = False
+
         # Make sure we're connected to the action server
         if self._status is ActionState.WAITING_FOR_SERVER:
             rospy.logwarn(f"Still waiting for action server '{self._action_name}' to start... is it running?")
