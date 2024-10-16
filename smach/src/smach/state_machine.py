@@ -62,6 +62,7 @@ class StateMachine(smach.container.Container):
         self._states = {}
         self._transitions = {}
         self._remappings = {}
+        self._constants = {}
 
         # Construction vars
         self._last_added_label = None
@@ -81,7 +82,7 @@ class StateMachine(smach.container.Container):
 
     ### Construction methods
     @staticmethod
-    def add(label, state, transitions=None, remapping=None):
+    def add(label, state, transitions=None, remapping=None, constants=None):
         """Add a state to the opened state machine.
         
         @type label: string
@@ -92,8 +93,11 @@ class StateMachine(smach.container.Container):
         @param transitions: A dictionary mapping state outcomes to other state
         labels or container outcomes.
 
-        @param remapping: A dictrionary mapping local userdata keys to userdata
+        @param remapping: A dictionary mapping local userdata keys to userdata
         keys in the container.
+
+        @param constants: A dictionary mapping userdata keys in the container
+        to constant values.
         """
         # Get currently opened container
         self = StateMachine._currently_opened_container()
@@ -109,6 +113,9 @@ class StateMachine(smach.container.Container):
 
         if remapping is None:
             remapping = {}
+
+        if constants is None:
+            constants = {}
 
         # Add group transitions to this new state, if they exist
         """
@@ -141,6 +148,7 @@ class StateMachine(smach.container.Container):
         self._states[label] = state
         self._transitions[label] = transitions
         self._remappings[label] = remapping
+        self._constants[label] = constants
         smach.logdebug("TRANSITIONS FOR %s: %s" % (label, str(self._transitions[label])))
 
         # Add transition to this state if connected outcome is defined
@@ -154,7 +162,7 @@ class StateMachine(smach.container.Container):
         return state
 
     @staticmethod
-    def add_auto(label, state, connector_outcomes, transitions=None, remapping=None):
+    def add_auto(label, state, connector_outcomes, transitions=None, remapping=None, constants=None):
         """Add a state to the state machine such that it automatically
         transitions to the next added state.
 
@@ -180,7 +188,7 @@ class StateMachine(smach.container.Container):
         self = StateMachine._currently_opened_container()
 
         # First add this state
-        add_ret = smach.StateMachine.add(label, state, transitions, remapping)
+        add_ret = smach.StateMachine.add(label, state, transitions, remapping, constants)
 
         # Make sure the connector outcomes are valid for this state
         registered_outcomes = state.get_registered_outcomes()
@@ -247,6 +255,8 @@ class StateMachine(smach.container.Container):
         # Execute the state
         try:
             self._state_transitioning_lock.release()
+            for k, v in self._constants[self._current_label].items():
+                self.userdata[k] = v
             outcome = self._current_state.execute(
                     smach.Remapper(
                         self.userdata,
