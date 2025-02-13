@@ -2,6 +2,9 @@
 Changelog for package smach_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.3 (2025-02-13)
+------------------
+
 2.5.2 (2023-06-13)
 ------------------
 * Fix is_running behaviour in case of exception in the state `#50 <https://github.com/ros/executive_smach/issues/50>`_ 

@@ -2,6 +2,12 @@
 Changelog for package smach
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.3 (2025-02-13)
+------------------
+* Fix Potential fix for preempting a concurrence container while it was already terminating `#99 <https://github.com/ros/executive_smach/issues/99>`_  
+* Fix SyntaxWarning 'is not' when checking for equality  `#97 <https://github.com/ros/executive_smach/issues/97>`_  
+* Fix `#92 <https://github.com/ros/executive_smach/issues/92>`_ `#107 <https://github.com/ros/executive_smach/issues/107>`_  
+
 2.5.2 (2023-06-13)
 ------------------
 * Fix outcome_map disambiguation for Concurrence `#80 <https://github.com/ros/executive_smach/issues/80>`_
