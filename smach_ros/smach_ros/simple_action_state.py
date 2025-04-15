@@ -354,6 +354,8 @@ class SimpleActionState(RosState):
         # Activate the state before sending the goal
         self._activate_time = self.node.get_clock().now()
         self._status = ActionState.ACTIVE
+        self._goal_result = None
+        self._goal_status = None
 
         with self._done_cond:
             # Dispatch goal via non-blocking call to action server
@@ -368,7 +370,9 @@ class SimpleActionState(RosState):
                 self._execution_timer_thread.start()
 
             # Wait for action to finish
-            self._done_cond.wait()
+            while self._goal_result is None:
+                rclpy.spin_once(self.node)
+                time.sleep(0.01)
 
         # Call user result callback if defined
         result_cb_outcome = None
