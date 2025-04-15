@@ -370,7 +370,7 @@ class SimpleActionState(RosState):
                 self._execution_timer_thread.start()
 
             # Wait for action to finish
-            while not self._goal_result:
+            while self._goal_result is None:
                 rclpy.spin_once(self.node)
                 time.sleep(0.01)
 
