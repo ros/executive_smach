@@ -132,7 +132,7 @@ class ContainerProxy():
 
     This class is used as a container for introspection and debugging.
     """
-    def __init__(self, server, container, path, update_rate=2.0):
+    def __init__(self, server, server_name, container, path, update_rate=2.0):
         """Constructor for tree-wide data structure.
         """
         self._path = path
@@ -143,20 +143,20 @@ class ContainerProxy():
         # Advertise init service
         self._init_cmd = self._server_node.create_subscription(
                 SmachContainerInitialStatusCmd,
-                self._server_node.get_name() + INIT_TOPIC,
+                server_name + INIT_TOPIC,
                 self._init_cmd_cb,
                 1)
 
         # Advertise structure publisher
         self._structure_pub = self._server_node.create_publisher(
                 SmachContainerStructure,
-                self._server_node.get_name() + STRUCTURE_TOPIC,
+                server_name + STRUCTURE_TOPIC,
                 1)
 
         # Advertise status publisher
         self._status_pub = self._server_node.create_publisher(
                 SmachContainerStatus,
-                self._server_node.get_name() + STATUS_TOPIC,
+                server_name + STATUS_TOPIC,
                 1)
 
         # Set transition callback
@@ -273,6 +273,7 @@ class IntrospectionServer():
         self._proxies = []
 
         # Store args
+        self._server_name = server_name
         self._state = state
         self._path = path
 
@@ -296,7 +297,7 @@ class IntrospectionServer():
     def construct(self, state, path):
         """Recursively construct proxies to containers."""
         # Construct a new proxy
-        proxy = ContainerProxy(self._node, state, path)
+        proxy = ContainerProxy(self._node, self._server_name, state, path)
 
         if path == '/':
             path = ''
