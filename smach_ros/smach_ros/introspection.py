@@ -132,7 +132,7 @@ class ContainerProxy():
 
     This class is used as a container for introspection and debugging.
     """
-    def __init__(self, server, server_name, container, path, update_rate=2.0):
+    def __init__(self, server, container, path, update_rate=2.0):
         """Constructor for tree-wide data structure.
         """
         self._path = path
@@ -143,20 +143,20 @@ class ContainerProxy():
         # Advertise init service
         self._init_cmd = self._server_node.create_subscription(
                 SmachContainerInitialStatusCmd,
-                server_name + INIT_TOPIC,
+                self._server_node.get_name() + INIT_TOPIC,
                 self._init_cmd_cb,
                 1)
 
         # Advertise structure publisher
         self._structure_pub = self._server_node.create_publisher(
                 SmachContainerStructure,
-                server_name + STRUCTURE_TOPIC,
+                self._server_node.get_name() + STRUCTURE_TOPIC,
                 1)
 
         # Advertise status publisher
         self._status_pub = self._server_node.create_publisher(
                 SmachContainerStatus,
-                server_name + STATUS_TOPIC,
+                self._server_node.get_name() + STATUS_TOPIC,
                 1)
 
         # Set transition callback
@@ -262,23 +262,22 @@ class ContainerProxy():
                 self._server_node.get_logger().error("Attempting to set initial state in container '"+self._path+"' to '"+str(initial_states)+"', but this container only has states: "+str(self._container.get_children()))
 
 
-class IntrospectionServer(Node):
+class IntrospectionServer():
     """Server for providing introspection and control for smach."""
-    def __init__(self, server_name, state, path):
+    def __init__(self, server_name, state, path, node=None):
         """Traverse the smach tree starting at root, and construct introspection
         proxies for getting and setting debug state."""
-        Node.__init__(self, server_name)
+        self._node = node or Node(server_name)
 
         # A list of introspection proxies
         self._proxies = []
 
         # Store args
-        self._server_name = server_name
         self._state = state
         self._path = path
 
         self._executor = SingleThreadedExecutor()
-        self._executor.add_node(self)
+        self._executor.add_node(self._node)
         self._spinner = threading.Thread(target=self._executor.spin)
         self._spinner.start()
 
@@ -288,16 +287,16 @@ class IntrospectionServer(Node):
 
     def start(self):
         # Construct proxies
-        self.construct(self._server_name, self._state, self._path)
+        self.construct(self._state, self._path)
 
     def stop(self):
         for proxy in self._proxies:
             proxy.stop()
 
-    def construct(self, server_name, state, path):
+    def construct(self, state, path):
         """Recursively construct proxies to containers."""
         # Construct a new proxy
-        proxy = ContainerProxy(self, server_name, state, path)
+        proxy = ContainerProxy(self._node, state, path)
 
         if path == '/':
             path = ''
@@ -306,7 +305,7 @@ class IntrospectionServer(Node):
         for (label, child) in state.get_children().items():
             # If this is also a container, recurse into it
             if isinstance(child, smach.container.Container):
-                self.construct(server_name, child, path+'/'+label)
+                self.construct(child, path+'/'+label)
 
         # Publish initial state
         proxy._publish_status("Initial state")
