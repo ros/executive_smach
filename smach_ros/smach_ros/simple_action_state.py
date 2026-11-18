@@ -25,6 +25,7 @@ class ActionState(Enum):
     CANCELING = 3
     CANCELED = 4
     COMPLETED = 5
+    ABORTED = 6
 
 
 class SimpleActionState(RosState):
@@ -416,7 +417,7 @@ class SimpleActionState(RosState):
             if self.preempt_requested():
                 self.service_preempt()
             outcome = 'preempted'
-        elif self._status == ActionState.CANCELING:
+        elif self._status == ActionState.CANCELING or self._status == ActionState.ABORTED:
             # Preempting or exec timeout but goal not cancelled
             outcome = 'aborted'
         else:
@@ -493,7 +494,7 @@ class SimpleActionState(RosState):
         elif self._goal_status == GoalStatus.STATUS_CANCELED:
             self._status = ActionState.CANCELED
         elif self._goal_status == GoalStatus.STATUS_ABORTED:
-            self._status = ActionState.CANCELED
+            self._status = ActionState.ABORTED
 
         self.node.get_logger().debug(f"Goal completed: {self._client_goal_handle}")
 
