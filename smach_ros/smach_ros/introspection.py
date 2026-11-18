@@ -262,12 +262,12 @@ class ContainerProxy():
                 self._server_node.get_logger().error("Attempting to set initial state in container '"+self._path+"' to '"+str(initial_states)+"', but this container only has states: "+str(self._container.get_children()))
 
 
-class IntrospectionServer(Node):
+class IntrospectionServer():
     """Server for providing introspection and control for smach."""
-    def __init__(self, server_name, state, path):
+    def __init__(self, server_name, state, path, node=None):
         """Traverse the smach tree starting at root, and construct introspection
         proxies for getting and setting debug state."""
-        Node.__init__(self, server_name)
+        self._node = node or Node(server_name)
 
         # A list of introspection proxies
         self._proxies = []
@@ -278,7 +278,7 @@ class IntrospectionServer(Node):
         self._path = path
 
         self._executor = SingleThreadedExecutor()
-        self._executor.add_node(self)
+        self._executor.add_node(self._node)
         self._spinner = threading.Thread(target=self._executor.spin)
         self._spinner.start()
 
@@ -288,16 +288,16 @@ class IntrospectionServer(Node):
 
     def start(self):
         # Construct proxies
-        self.construct(self._server_name, self._state, self._path)
+        self.construct(self._state, self._path)
 
     def stop(self):
         for proxy in self._proxies:
             proxy.stop()
 
-    def construct(self, server_name, state, path):
+    def construct(self, state, path):
         """Recursively construct proxies to containers."""
         # Construct a new proxy
-        proxy = ContainerProxy(self, server_name, state, path)
+        proxy = ContainerProxy(self._node, self._server_name, state, path)
 
         if path == '/':
             path = ''
@@ -306,7 +306,7 @@ class IntrospectionServer(Node):
         for (label, child) in state.get_children().items():
             # If this is also a container, recurse into it
             if isinstance(child, smach.container.Container):
-                self.construct(server_name, child, path+'/'+label)
+                self.construct(child, path+'/'+label)
 
         # Publish initial state
         proxy._publish_status("Initial state")
